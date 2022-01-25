@@ -24,8 +24,9 @@ from scdc.initial.matrix_element import FiducialMatrixElement
 # Configuration
 #{{{
 KMS = 3.33564e-6  # km/s in natural units
+mediator_mass = 10
 
-material = ALUMINUM
+material = SILICON
 vdf = StandardHaloDistribution(
     v_0    = 220 * KMS / material.v, 
     v_esc  = 550 * KMS / material.v,
@@ -38,11 +39,11 @@ vdf_iso = StandardHaloDistribution(
 )
 response = HybridResponseFunction(material, 1) # The 1 is the coherence sign. Can be +1 or -1
 me_light = FiducialMatrixElement(mediator_mass = 0)
-me_heavy = FiducialMatrixElement(mediator_mass = 10)
-m_nt     = np.concatenate((
-           np.linspace(1, 9, 3) * 1e4, 
-           np.linspace(1, 9, 3) * 1e5
-           )) / material.m # Dark matter masses
+me_heavy = FiducialMatrixElement(mediator_mass = mediator_mass)
+m_nt     = [1e6, 1e7, 1e8, 1e9, 1e10, 1e11] / material.m #np.concatenate((
+           #np.linspace(1, 9, 3) * 1e4, 
+           #np.linspace(1, 9, 3) * 1e5
+           #)) / material.m # Dark matter masses
 N_events = np.array( [100] ) # Numero de eventos observados
 #}}}
 
@@ -86,7 +87,7 @@ cmap = get_cmap('viridis', len(m_nt))
 fig, ax = plt.subplots(2, 2, sharex = False, sharey = False, figsize = (14, 10), gridspec_kw = dict(hspace = 0.3, wspace = 0))
 
 for i, vali in enumerate(m_nt):
-    if i < (len(m_nt)/2):
+    if i <= (len(m_nt)/2):
         ax[0,0].hist(sim_light_energy_leaf_qp[i], histtype = 'step', color = cmap(i),
                 label = 'M_{DM} = ' + '{:.2e}'.format(vali * material.m) + ' eV')
     else:
@@ -105,7 +106,7 @@ for i, vali in enumerate(m_nt):
 ax[0,1].legend()
 ax[0,0].legend()
 ax[0,0].set_title('Light Mediator m = 0')
-ax[0,1].set_title('Heavy Mediator m = 10')
+ax[0,1].set_title('Heavy Mediator m = ' + str(mediator_mass))
 
 ax[0,0].set_xlabel('Energy [$\Delta$]')
 ax[0,1].set_xlabel('Energy [$\Delta$]')
@@ -121,14 +122,16 @@ ax[1,1].yaxis.tick_right()
 ax[1,0].text(0.17, 700, 'PH')
 ax[1,1].text(0.17, 700, 'PH')
 
-plt.savefig('../graph/energy_leaf_QP+PH_AL_midEnergy.pdf')
+plt.savefig('../graph/energy_leaf_QP+PH_AL_' + 
+            str(np.min(m_nt * material.m)) + '-' + str(np.max(m_nt * material.m)) + 
+            '_MedMass_' + str(mediator_mass) + '.pdf')
 
 cmap = get_cmap('viridis', len(m_nt))
 
 fig, ax = plt.subplots(1, 2, sharex = False, sharey = False, figsize = (10, 5), gridspec_kw = dict(hspace = 0.3, wspace = 0))
 
 for i, vali in enumerate(m_nt):
-    if i < (len(m_nt)/2):
+    if i <= (len(m_nt)/2):
         ax[0].hist(sim_light_dep_energy[i], histtype = 'step', color = cmap(i),
                 label = 'M_{DM} = ' + '{:.2e}'.format(vali * material.m) + ' eV')
     else:
@@ -152,7 +155,9 @@ ax[1].set_xlabel('Energy [$\Delta$]')
 ax[1].yaxis.set_ticks_position('both')
 ax[1].yaxis.tick_right()
 
-plt.savefig('../graph/dep_energy_AL_midEnergy.pdf')
+plt.savefig('../graph/dep_energy_AL_' + 
+            str(np.min(m_nt * material.m)) + '-' + str(np.max(m_nt * material.m)) + 
+            '_MedMass_' + str(mediator_mass) + '.pdf')
 #}}}
 #{{{
 cmap = get_cmap('viridis', len(m_nt))
@@ -179,7 +184,7 @@ for i, vali in enumerate(m_nt):
 ax[0,1].legend()
 ax[0,0].legend()
 ax[0,0].set_title('Light Mediator m = 0')
-ax[0,1].set_title('Heavy Mediator m = 10')
+ax[0,1].set_title('Heavy Mediator m = ' + str(mediator_mass))
 
 ax[0,0].set_xlabel('Energy [$\Delta$]')
 ax[0,1].set_xlabel('Energy [$\Delta$]')
@@ -195,7 +200,9 @@ ax[1,1].yaxis.tick_right()
 ax[1,0].text(0.17, 700, 'PH')
 ax[1,1].text(0.17, 700, 'PH')
 
-plt.savefig('../graph/energy_leaf_QP+PH_AL_midEnergy_density.pdf')
+plt.savefig('../graph/energy_leaf_QP+PH_AL_' + 
+            str(np.min(m_nt * material.m)) + '-' + str(np.max(m_nt * material.m)) + 
+            '_MedMass_' + str(mediator_mass) + '_density.pdf')
 
 cmap = get_cmap('viridis', len(m_nt))
 
@@ -219,12 +226,14 @@ for i, vali in enumerate(m_nt):
 ax[1].legend()
 ax[0].legend()
 ax[0].set_title('Light Mediator m = 0')
-ax[1].set_title('Heavy Mediator m = 10')
+ax[1].set_title('Heavy Mediator m = ' + str(mediator_mass))
 
 ax[0].set_xlabel('Energy [$\Delta$]')
 ax[1].set_xlabel('Energy [$\Delta$]')
 ax[1].yaxis.set_ticks_position('both')
 ax[1].yaxis.tick_right()
 
-plt.savefig('../graph/dep_energy_AL_midEnergy_density.pdf')
+plt.savefig('../graph/dep_energy_AL_' + 
+            str(np.min(m_nt * material.m)) + '-' + str(np.max(m_nt * material.m)) + 
+            '_MedMass_' + str(mediator_mass) + '_density.pdf')
 #}}}
