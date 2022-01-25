@@ -40,8 +40,8 @@ response = HybridResponseFunction(material, 1) # The 1 is the coherence sign. Ca
 me_light = FiducialMatrixElement(mediator_mass = 0)
 me_heavy = FiducialMatrixElement(mediator_mass = 10)
 m_nt     = np.concatenate((
-           np.linspace(1, 9, 3) * 1e6, 
-           np.linspace(1, 9, 3) * 1e7
+           np.linspace(1, 9, 3) * 1e4, 
+           np.linspace(1, 9, 3) * 1e5
            )) / material.m # Dark matter masses
 N_events = np.array( [100] ) # Numero de eventos observados
 #}}}
@@ -121,7 +121,7 @@ ax[1,1].yaxis.tick_right()
 ax[1,0].text(0.17, 700, 'PH')
 ax[1,1].text(0.17, 700, 'PH')
 
-plt.savefig('../graph/energy_leaf_QP+PH_AL.pdf')
+plt.savefig('../graph/energy_leaf_QP+PH_AL_midEnergy.pdf')
 
 cmap = get_cmap('viridis', len(m_nt))
 
@@ -151,8 +151,80 @@ ax[0].set_xlabel('Energy [$\Delta$]')
 ax[1].set_xlabel('Energy [$\Delta$]')
 ax[1].yaxis.set_ticks_position('both')
 ax[1].yaxis.tick_right()
-ax[0].text(4, 30, 'QP')
-ax[1].text(10, 30, 'QP')
 
-plt.savefig('../graph/dep_energy_AL.pdf')
+plt.savefig('../graph/dep_energy_AL_midEnergy.pdf')
+#}}}
+#{{{
+cmap = get_cmap('viridis', len(m_nt))
+
+fig, ax = plt.subplots(2, 2, sharex = False, sharey = False, figsize = (14, 10), gridspec_kw = dict(hspace = 0.3, wspace = 0))
+
+for i, vali in enumerate(m_nt):
+    if i < (len(m_nt)/2):
+        ax[0,0].hist(sim_light_energy_leaf_qp[i], histtype = 'step', density = True, color = cmap(i),
+                label = 'M_{DM} = ' + '{:.2e}'.format(vali * material.m) + ' eV')
+    else:
+        ax[0,0].hist(sim_light_energy_leaf_qp[i], histtype = 'step', density = True, color = cmap(i))
+    ax[1,0].hist(sim_light_energy_leaf_ph[i], histtype = 'step', density = True, color = cmap(i))
+
+    
+for i, vali in enumerate(m_nt):
+    if i > (len(m_nt)/2):
+        ax[0,1].hist(sim_heavy_energy_leaf_qp[i], histtype = 'step', density = True, color = cmap(i),
+                label = 'M_{DM} = ' + '{:.2e}'.format(vali * material.m) + ' eV')
+    else:
+        ax[0,1].hist(sim_heavy_energy_leaf_qp[i], histtype = 'step', density = True, color = cmap(i))
+    ax[1,1].hist(sim_heavy_energy_leaf_ph[i], histtype = 'step', density = True, color = cmap(i))
+    
+ax[0,1].legend()
+ax[0,0].legend()
+ax[0,0].set_title('Light Mediator m = 0')
+ax[0,1].set_title('Heavy Mediator m = 10')
+
+ax[0,0].set_xlabel('Energy [$\Delta$]')
+ax[0,1].set_xlabel('Energy [$\Delta$]')
+ax[0,1].yaxis.set_ticks_position('both')
+ax[0,1].yaxis.tick_right()
+ax[0,0].text(1 + 0.8e-5, 65, 'QP')
+ax[0,1].text(1 + 0.8e-5, 65, 'QP')
+ 
+ax[1,0].set_xlabel('Energy [$\Delta$]')
+ax[1,1].set_xlabel('Energy [$\Delta$]')
+ax[1,1].yaxis.set_ticks_position('both')
+ax[1,1].yaxis.tick_right()
+ax[1,0].text(0.17, 700, 'PH')
+ax[1,1].text(0.17, 700, 'PH')
+
+plt.savefig('../graph/energy_leaf_QP+PH_AL_midEnergy_density.pdf')
+
+cmap = get_cmap('viridis', len(m_nt))
+
+fig, ax = plt.subplots(1, 2, sharex = False, sharey = False, figsize = (10, 5), gridspec_kw = dict(hspace = 0.3, wspace = 0))
+
+for i, vali in enumerate(m_nt):
+    if i < (len(m_nt)/2):
+        ax[0].hist(sim_light_dep_energy[i], histtype = 'step', density = True, color = cmap(i),
+                label = 'M_{DM} = ' + '{:.2e}'.format(vali * material.m) + ' eV')
+    else:
+        ax[0].hist(sim_light_dep_energy[i], histtype = 'step', density = True, color = cmap(i))
+
+    
+for i, vali in enumerate(m_nt):
+    if i > (len(m_nt)/2):
+        ax[1].hist(sim_heavy_dep_energy[i], histtype = 'step', density = True, color = cmap(i),
+                label = 'M_{DM} = ' + '{:.2e}'.format(vali * material.m) + ' eV')
+    else:
+        ax[1].hist(sim_heavy_dep_energy[i], histtype = 'step', density = True, color = cmap(i))
+    
+ax[1].legend()
+ax[0].legend()
+ax[0].set_title('Light Mediator m = 0')
+ax[1].set_title('Heavy Mediator m = 10')
+
+ax[0].set_xlabel('Energy [$\Delta$]')
+ax[1].set_xlabel('Energy [$\Delta$]')
+ax[1].yaxis.set_ticks_position('both')
+ax[1].yaxis.tick_right()
+
+plt.savefig('../graph/dep_energy_AL_midEnergy_density.pdf')
 #}}}
