@@ -24,7 +24,7 @@ from scdc.initial.matrix_element import FiducialMatrixElement
 # Configuration
 #{{{
 KMS = 3.33564e-6  # km/s in natural units
-mediator_mass = 10
+mediator_mass = 10000
 
 material = SILICON
 vdf = StandardHaloDistribution(
@@ -40,7 +40,7 @@ vdf_iso = StandardHaloDistribution(
 response = HybridResponseFunction(material, 1) # The 1 is the coherence sign. Can be +1 or -1
 me_light = FiducialMatrixElement(mediator_mass = 0)
 me_heavy = FiducialMatrixElement(mediator_mass = mediator_mass)
-m_nt     = [1e6, 1e7, 1e8, 1e9, 1e10, 1e11] / material.m #np.concatenate((
+m_nt     = [1e11, 2e11] / material.m #np.concatenate((
            #np.linspace(1, 9, 3) * 1e4, 
            #np.linspace(1, 9, 3) * 1e5
            #)) / material.m # Dark matter masses
@@ -122,7 +122,7 @@ ax[1,1].yaxis.tick_right()
 ax[1,0].text(0.17, 700, 'PH')
 ax[1,1].text(0.17, 700, 'PH')
 
-plt.savefig('../graph/energy_leaf_QP+PH_AL_' + 
+plt.savefig('../graph/energy_leaf_QP+PH_SI_' + 
             str(np.min(m_nt * material.m)) + '-' + str(np.max(m_nt * material.m)) + 
             '_MedMass_' + str(mediator_mass) + '.pdf')
 
@@ -155,7 +155,7 @@ ax[1].set_xlabel('Energy [$\Delta$]')
 ax[1].yaxis.set_ticks_position('both')
 ax[1].yaxis.tick_right()
 
-plt.savefig('../graph/dep_energy_AL_' + 
+plt.savefig('../graph/dep_energy_SI_' + 
             str(np.min(m_nt * material.m)) + '-' + str(np.max(m_nt * material.m)) + 
             '_MedMass_' + str(mediator_mass) + '.pdf')
 #}}}
@@ -200,7 +200,7 @@ ax[1,1].yaxis.tick_right()
 ax[1,0].text(0.17, 700, 'PH')
 ax[1,1].text(0.17, 700, 'PH')
 
-plt.savefig('../graph/energy_leaf_QP+PH_AL_' + 
+plt.savefig('../graph/energy_leaf_QP+PH_SI_' + 
             str(np.min(m_nt * material.m)) + '-' + str(np.max(m_nt * material.m)) + 
             '_MedMass_' + str(mediator_mass) + '_density.pdf')
 
@@ -233,7 +233,7 @@ ax[1].set_xlabel('Energy [$\Delta$]')
 ax[1].yaxis.set_ticks_position('both')
 ax[1].yaxis.tick_right()
 
-plt.savefig('../graph/dep_energy_AL_' + 
+plt.savefig('../graph/dep_energy_SI_' + 
             str(np.min(m_nt * material.m)) + '-' + str(np.max(m_nt * material.m)) + 
             '_MedMass_' + str(mediator_mass) + '_density.pdf')
 #}}}

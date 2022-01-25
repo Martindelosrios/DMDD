@@ -23,8 +23,8 @@ from scdc.initial.matrix_element import FiducialMatrixElement
 
 # Custom functions
 #{{{
-def analyse(dm_mass, matrix_element):
-    sampler    = InitialSampler(dm_mass, matrix_element, material, response, vdf, n_cq = 20, n_rq = 20)
+def analyse(i, matrix_element):
+    sampler    = InitialSampler(m_nt[i], matrix_element, material, response, vdf, n_cq = 20, n_rq = 20)
     simulation = sampler.ensemble(N_events[0])
     simulation.chain()
     aux = np.zeros((N_events[0]))
@@ -38,9 +38,9 @@ def analyse(dm_mass, matrix_element):
 # Configuration
 #{{{
 KMS = 3.33564e-6  # km/s in natural units
-mediator_mass = 1000
+mediator_mass = 100
 
-material = SILICON
+material = ALUMINUM
 vdf = StandardHaloDistribution(
     v_0    = 220 * KMS / material.v, 
     v_esc  = 550 * KMS / material.v,
@@ -54,17 +54,25 @@ vdf_iso = StandardHaloDistribution(
 response = HybridResponseFunction(material, 1) # The 1 is the coherence sign. Can be +1 or -1
 me_light = FiducialMatrixElement(mediator_mass = 0)
 me_heavy = FiducialMatrixElement(mediator_mass = mediator_mass)
-m_nt     = [1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 5e11] / material.m #np.concatenate((
+m_nt     = [1e7, 1e8] / material.m #np.concatenate((
            #np.linspace(1, 9, 3) * 1e4, 
            #np.linspace(1, 9, 3) * 1e5
            #)) / material.m # Dark matter masses
 N_events = np.array( [100] ) # Numero de eventos observados
 #}}}
 
+print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
+print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
 print('Starting analysis with light mediator')
-results_light = Parallel(n_jobs=4)(delayed(analyse)(i, matrix_element = me_light) for i in m_nt)
+print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
+print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
+results_light = Parallel(n_jobs=1)(delayed(analyse)(i, matrix_element = me_light) for i in tqdm(range(len(m_nt))))
+print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
+print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
 print('Starting analysis with heavy mediator')
-results_heavy = Parallel(n_jobs=4)(delayed(analyse)(i, matrix_element = me_heavy) for i in m_nt)
+print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
+print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
+results_heavy = Parallel(n_jobs=1)(delayed(analyse)(i, matrix_element = me_heavy) for i in tqdm(range(len(m_nt))))
 
 # Graphs
 #{{{
@@ -109,7 +117,8 @@ ax[1,0].text(0.17, 700, 'PH')
 ax[1,1].text(0.17, 700, 'PH')
 
 plt.savefig('../graph/energy_leaf_QP+PH_AL_' + 
-            str(np.min(m_nt * material.m)) + '-' + str(np.max(m_nt * material.m)) + 
+            #str(np.min(m_nt * material.m)) + '-' + str(np.max(m_nt * material.m)) + 
+            "{:.2e}".format(np.min(m_nt * material.m)) + "-{:.2e}".format(np.max(m_nt * material.m)) +
             '_MedMass_' + str(mediator_mass) + '_p.pdf')
 
 cmap = get_cmap('viridis', len(m_nt))
@@ -127,7 +136,7 @@ for i, vali in enumerate(m_nt):
 for i, vali in enumerate(m_nt):
     if i > (len(m_nt)/2):
         ax[1].hist(results_heavy[i][2], histtype = 'step', color = cmap(i),
-                label = 'M_{DM} = ' + '{:.2e}'.format(vali * material.m) + ' eV')
+                label = 'M_{DM} = ' + '-{:.2e}'.format(vali * material.m) + ' eV')
     else:
         ax[1].hist(results_heavy[i][2], histtype = 'step', color = cmap(i))
     
@@ -142,7 +151,8 @@ ax[1].yaxis.set_ticks_position('both')
 ax[1].yaxis.tick_right()
 
 plt.savefig('../graph/dep_energy_AL_' + 
-            str(np.min(m_nt * material.m)) + '-' + str(np.max(m_nt * material.m)) + 
+            #str(np.min(m_nt * material.m)) + '-' + str(np.max(m_nt * material.m)) + 
+            "{:.2e}".format(np.min(m_nt * material.m)) + "{:.2e}".format(np.max(m_nt * material.m)) +
             '_MedMass_' + str(mediator_mass) + '_p.pdf')
 #}}}
 #{{{
@@ -151,7 +161,7 @@ cmap = get_cmap('viridis', len(m_nt))
 fig, ax = plt.subplots(2, 2, sharex = False, sharey = False, figsize = (14, 10), gridspec_kw = dict(hspace = 0.3, wspace = 0))
 
 for i, vali in enumerate(m_nt):
-    if i < (len(m_nt)/2):
+    if i <= (len(m_nt)/2):
         ax[0,0].hist(results_light[i][0], histtype = 'step', density = True, color = cmap(i),
                 label = 'M_{DM} = ' + '{:.2e}'.format(vali * material.m) + ' eV')
     else:
@@ -187,7 +197,8 @@ ax[1,0].text(0.17, 700, 'PH')
 ax[1,1].text(0.17, 700, 'PH')
 
 plt.savefig('../graph/energy_leaf_QP+PH_AL_' + 
-            str(np.min(m_nt * material.m)) + '-' + str(np.max(m_nt * material.m)) + 
+            #str(np.min(m_nt * material.m)) + '-' + str(np.max(m_nt * material.m)) + 
+            "{:.2e}".format(np.min(m_nt * material.m)) + "-{:.2e}".format(np.max(m_nt * material.m)) +
             '_MedMass_' + str(mediator_mass) + '_density_p.pdf')
 
 cmap = get_cmap('viridis', len(m_nt))
@@ -195,7 +206,7 @@ cmap = get_cmap('viridis', len(m_nt))
 fig, ax = plt.subplots(1, 2, sharex = False, sharey = False, figsize = (10, 5), gridspec_kw = dict(hspace = 0.3, wspace = 0))
 
 for i, vali in enumerate(m_nt):
-    if i < (len(m_nt)/2):
+    if i <= (len(m_nt)/2):
         ax[0].hist(results_light[i][2], histtype = 'step', density = True, color = cmap(i),
                 label = 'M_{DM} = ' + '{:.2e}'.format(vali * material.m) + ' eV')
     else:
@@ -205,7 +216,7 @@ for i, vali in enumerate(m_nt):
 for i, vali in enumerate(m_nt):
     if i > (len(m_nt)/2):
         ax[1].hist(results_heavy[i][2], histtype = 'step', density = True, color = cmap(i),
-                label = 'M_{DM} = ' + '{:.2e}'.format(vali * material.m) + ' eV')
+                label = 'M_{DM} = ' + '-{:.2e}'.format(vali * material.m) + ' eV')
     else:
         ax[1].hist(results_heavy[i][2], histtype = 'step', density = True, color = cmap(i))
     
@@ -220,6 +231,7 @@ ax[1].yaxis.set_ticks_position('both')
 ax[1].yaxis.tick_right()
 
 plt.savefig('../graph/dep_energy_AL_' + 
-            str(np.min(m_nt * material.m)) + '-' + str(np.max(m_nt * material.m)) + 
+            #str(np.min(m_nt * material.m)) + '-' + str(np.max(m_nt * material.m)) + 
+            "{:.2e}".format(np.min(m_nt * material.m)) + "{:.2e}".format(np.max(m_nt * material.m)) +
             '_MedMass_' + str(mediator_mass) + '_density_p.pdf')
 #}}}
