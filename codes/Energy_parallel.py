@@ -71,6 +71,30 @@ def make_graph(m_nt, results, mediator_mass, mat_name):
     plt.savefig('../graph/energy_leaf_QP+PH_' + str(mat_name) + '_' + 
                 "{:.2e}".format(np.min(m_nt * material.m)) + "-{:.2e}".format(np.max(m_nt * material.m)) +
                 '_MedMass_' + "{:.2e}".format(mediator_mass) + '.pdf')
+
+
+def make_graph_dep_energy(m_nt, results, mediator_mass, mat_name):
+    
+    cmap = get_cmap('viridis', len(m_nt))
+    
+    
+    for i, vali in enumerate(m_nt):
+        plt.hist(results[i][2], histtype = 'step', color = cmap(i),
+                    label = 'M_{DM} = ' + '{:.2e}'.format(vali * material.m) + ' eV')
+        
+    plt.legend()
+    plt.title('Mediator mass = {:.2e}'.format(mediator_mass))
+    
+    plt.xlabel('Energy [$\Delta$]')
+    plt.yscale('log')
+    plt.xscale('log')
+
+    
+    plt.savefig('../graph/dep_energy_' + str(mat_name) + '_' + 
+                "{:.2e}".format(np.min(m_nt * material.m)) + "-{:.2e}".format(np.max(m_nt * material.m)) +
+                '_MedMass_' + str(mediator_mass) + '_density.pdf')
+
+
 #}}}
 #}}}
 
@@ -119,6 +143,7 @@ with h5py.File('SILICON.h5','a') as data:
             print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
             results = Parallel(n_jobs=5)(delayed(analyse)(i, matrix_element = mat_element) for i in tqdm(range(len(m_nt))))
             make_graph(m_nt, results, valj, 'SI')
+            make_graph_dep_energy(m_nt, results, valj, 'SI')
 
             for i, vali in enumerate(m_nt):
                 try:
