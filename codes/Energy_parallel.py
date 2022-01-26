@@ -52,7 +52,7 @@ def make_graph(m_nt, results, mediator_mass, mat_name):
                     label = 'M_{DM} = ' + '{:.2e}'.format(vali * material.m) + ' eV')
         
     ax[0].legend()
-    ax[0].set_title('Mediator Mass = ' + str(mediator_mass))
+    ax[0].set_title(mat_name + ' Mediator Mass = ' + str(mediator_mass))
     
     ax[0].set_xlabel('Energy [$\Delta$]')
     ax[0].yaxis.set_ticks_position('both')
@@ -76,23 +76,21 @@ def make_graph(m_nt, results, mediator_mass, mat_name):
 def make_graph_dep_energy(m_nt, results, mediator_mass, mat_name):
     
     cmap = get_cmap('viridis', len(m_nt))
-    
-    
+    fig1, ax1 = plt.subplots()
     for i, vali in enumerate(m_nt):
-        plt.hist(results[i][2], histtype = 'step', color = cmap(i),
+        ax1.hist(results[i][2], histtype = 'step', color = cmap(i),
                     label = 'M_{DM} = ' + '{:.2e}'.format(vali * material.m) + ' eV')
         
-    plt.legend()
-    plt.title('Mediator mass = {:.2e}'.format(mediator_mass))
-    
-    plt.xlabel('Energy [$\Delta$]')
-    plt.yscale('log')
-    plt.xscale('log')
+    ax1.legend()
+    ax1.set_title(mat_name + ' Mediator mass = {:.2e}'.format(mediator_mass))
+    ax1.set_xlabel('Energy [$\Delta$]')
+    ax1.set_yscale('log')
+    ax1.set_xscale('log')
 
     
     plt.savefig('../graph/dep_energy_' + str(mat_name) + '_' + 
                 "{:.2e}".format(np.min(m_nt * material.m)) + "-{:.2e}".format(np.max(m_nt * material.m)) +
-                '_MedMass_' + str(mediator_mass) + '_density.pdf')
+                '_MedMass_' + "{:.2e}".format(mediator_mass) + '.pdf')
 
 
 #}}}
@@ -114,7 +112,7 @@ vdf_iso = StandardHaloDistribution(
     v_wind = 0 * KMS / material.v
 )
 response = HybridResponseFunction(material, 1) # The 1 is the coherence sign. Can be +1 or -1
-m_nt     = [1e6, 1e7, 1e8, 1e9] / material.m #np.concatenate((
+m_nt     = [1e6, 1e7, 1e8, 1e9, 1e10, 1e11] / material.m #np.concatenate((
            #np.linspace(1, 9, 3) * 1e4, 
            #np.linspace(1, 9, 3) * 1e5
            #)) / material.m # Dark matter masses
@@ -122,7 +120,7 @@ N_events = np.array( [100] ) # Numero de eventos observados
 #}}}
 
 mediator_mass = [0, 1e3, 1e5]
-with h5py.File('SILICON.h5','a') as data:
+with h5py.File('../SILICON.h5','a') as data:
 
     for j, valj in enumerate(mediator_mass):
         mat_element = FiducialMatrixElement(mediator_mass = valj)
