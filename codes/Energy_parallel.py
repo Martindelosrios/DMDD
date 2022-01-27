@@ -8,8 +8,10 @@ from scipy import stats
 from timeit import default_timer as timer
 from tqdm import tqdm
 from joblib import Parallel, delayed
+import sys
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1" # Comment this line if want to work with GPU
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
 from scdc.ensemble import Ensemble
 from scdc.event import Event
@@ -21,14 +23,13 @@ from scdc.initial.halo import StandardHaloDistribution
 from scdc.initial.response import HybridResponseFunction
 from scdc.initial.matrix_element import FiducialMatrixElement
 
-import logging
 KMS = 3.33564e-6  # km/s in natural units
 #}}}
 
 # Custom functions
 #{{{
 def analyse(i, matrix_element):
-    sampler    = InitialSampler(m_nt[i], matrix_element, material, response, vdf, n_cq = 100, n_rq = 100)
+    sampler    = InitialSampler(m_nt[i], matrix_element, material, response, vdf, n_cq = 20, n_rq = 20)
     simulation = sampler.ensemble(N_events[0])
     simulation.chain()
     aux = np.zeros((N_events[0]))
@@ -101,16 +102,14 @@ def make_graph_dep_energy(m_nt, results, mediator_mass, mat_name):
 
 # Configuration
 #{{{
-name          = 'ALUMINUM_HR' # Name of the outpu hdf5 file and the plots
-logging.basicConfig(filename="log_" + name + ".txt", level = logging.DEBUG)
-logging.captureWarnings(True)
-
+name          = 'ALUMINUM_LR' # Name of the outpu hdf5 file and the plots
 material      = ALUMINUM # material
-m_nt          = [1e3, 1e4, 1e12] / material.m # Masas de la DM normalizadas a la masa del material 
+m_nt          = [1e3, 1e4] / material.m # Masas de la DM normalizadas a la masa del material 
 mediator_mass = [0, 1e1] # Masas del mediador
 N_events      = np.array( [100] ) # Numero de eventos observados
 #}}}
 
+sys.stderr = open('log_' + name + '.txt', 'w')
 
 vdf = StandardHaloDistribution(
     v_0    = 220 * KMS / material.v, 
@@ -138,12 +137,12 @@ with h5py.File('../data/' + name + '.h5','a') as data:
         m_nt = m_nt[~np.in1d(m_nt * material.m, already_done)]
 # --------------------------------------------------------------------------------
         if len(m_nt) > 0:
-            print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
-            print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
+            print('\\\\\\\\\\\\\  0 \\\\\\\\\\\\\\\\\\\\\\\\')
+            print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
             print('Starting analysis with mediator mass {:.2e}'.format(valj))
-            print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
-            print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
-            results = Parallel(n_jobs=5)(delayed(analyse)(i, matrix_element = mat_element) for i in tqdm(range(len(m_nt))))
+            print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
+            print('\\\\\\\\\\\\\\o  o\\\\\\\\\\\\\\\\\\\\\\')
+            results = Parallel(n_jobs=5)(delayed(analyse)(i, matrix_element = mat_element) for i in range(len(m_nt)))
             make_graph(m_nt, results, valj, name)
             make_graph_dep_energy(m_nt, results, valj, name)
 
