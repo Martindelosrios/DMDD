@@ -58,14 +58,14 @@ def make_graph(m_nt, results, mediator_mass, mat_name):
     ax[0].yaxis.set_ticks_position('both')
     ax[0].yaxis.tick_right()
     ax[0].text(1 + 0.8e-5, 65, 'QP')
-    ax[0].set_xscale('log')
+    #ax[0].set_xscale('log')
     ax[0].set_yscale('log')
      
     ax[1].set_xlabel('Energy [$\Delta$]')
     ax[1].yaxis.set_ticks_position('both')
     ax[1].yaxis.tick_right()
     ax[1].text(0.17, 700, 'PH')
-    ax[1].set_xscale('log')
+    #ax[1].set_xscale('log')
     ax[1].set_yscale('log')
     
     plt.savefig('../graph/energy_leaf_QP+PH_' + str(mat_name) + '_' + 
@@ -79,7 +79,7 @@ def make_graph_dep_energy(m_nt, results, mediator_mass, mat_name):
     fig1, ax1 = plt.subplots()
     for i, vali in enumerate(m_nt):
         ax1.hist(results[i][2], histtype = 'step', color = cmap(i),
-                    label = 'M_{DM} = ' + '{:.2e}'.format(vali * material.m) + ' eV')
+                    label = '{:.2e}'.format(vali * material.m) + ' eV' + ' #' + str(len(results[i][2])))
         
     ax1.legend()
     ax1.set_title(mat_name + ' Mediator mass = {:.2e}'.format(mediator_mass))
@@ -100,7 +100,7 @@ def make_graph_dep_energy(m_nt, results, mediator_mass, mat_name):
 #{{{
 KMS = 3.33564e-6  # km/s in natural units
 
-material = SILICON
+material = ALUMINUM
 vdf = StandardHaloDistribution(
     v_0    = 220 * KMS / material.v, 
     v_esc  = 550 * KMS / material.v,
@@ -112,15 +112,15 @@ vdf_iso = StandardHaloDistribution(
     v_wind = 0 * KMS / material.v
 )
 response = HybridResponseFunction(material, 1) # The 1 is the coherence sign. Can be +1 or -1
-m_nt     = [1e6, 1e7, 1e8, 1e9, 1e10, 1e11] / material.m #np.concatenate((
+m_nt     = [1e3, 1e4, 1e5, 1e6] / material.m #np.concatenate((
            #np.linspace(1, 9, 3) * 1e4, 
            #np.linspace(1, 9, 3) * 1e5
            #)) / material.m # Dark matter masses
 N_events = np.array( [100] ) # Numero de eventos observados
 #}}}
 
-mediator_mass = [0, 1e3, 1e5]
-with h5py.File('../SILICON.h5','a') as data:
+mediator_mass = [0, 1e1, 1e2, 1e3, 1e4]
+with h5py.File('../data/ALUMINUM.h5','a') as data:
 
     for j, valj in enumerate(mediator_mass):
         mat_element = FiducialMatrixElement(mediator_mass = valj)
@@ -140,8 +140,8 @@ with h5py.File('../SILICON.h5','a') as data:
             print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
             print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
             results = Parallel(n_jobs=5)(delayed(analyse)(i, matrix_element = mat_element) for i in tqdm(range(len(m_nt))))
-            make_graph(m_nt, results, valj, 'SI')
-            make_graph_dep_energy(m_nt, results, valj, 'SI')
+            make_graph(m_nt, results, valj, 'AL')
+            make_graph_dep_energy(m_nt, results, valj, 'AL')
 
             for i, vali in enumerate(m_nt):
                 try:
