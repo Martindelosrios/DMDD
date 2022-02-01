@@ -29,7 +29,7 @@ KMS = 3.33564e-6  # km/s in natural units
 # Custom functions
 #{{{
 def analyse(i, matrix_element):
-    sampler    = InitialSampler(m_nt[i], matrix_element, material, response, vdf, n_cq = 20, n_rq = 20)
+    sampler    = InitialSampler(m_nt[i], matrix_element, material, response, vdf, n_cq = 95, n_rq = 95)
     simulation = sampler.ensemble(N_events[0])
     simulation.chain()
     aux = np.zeros((N_events[0]))
@@ -102,10 +102,10 @@ def make_graph_dep_energy(m_nt, results, mediator_mass, mat_name):
 
 # Configuration
 #{{{
-name          = 'ALUMINUM_LR' # Name of the outpu hdf5 file and the plots
+name          = 'ALUMINUM_R=95' # Name of the outpu hdf5 file and the plots
 material      = ALUMINUM # material
-m_nt          = [1e3, 1e4] / material.m # Masas de la DM normalizadas a la masa del material 
-mediator_mass = [0, 1e1] # Masas del mediador
+m_nt          = [1e3, 1e4, 1e12] / material.m # Masas de la DM normalizadas a la masa del material 
+mediator_mass = [0, 1e1, 1e2] # Masas del mediador
 N_events      = np.array( [100] ) # Numero de eventos observados
 #}}}
 
@@ -139,7 +139,7 @@ with h5py.File('../data/' + name + '.h5','a') as data:
         if len(m_nt) > 0:
             print('\\\\\\\\\\\\\  0 \\\\\\\\\\\\\\\\\\\\\\\\')
             print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
-            print('Starting analysis with mediator mass {:.2e}'.format(valj))
+            print('Starting analysis ' + name + ' with mediator mass {:.2e}'.format(valj))
             print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
             print('\\\\\\\\\\\\\\o  o\\\\\\\\\\\\\\\\\\\\\\')
             results = Parallel(n_jobs=5)(delayed(analyse)(i, matrix_element = mat_element) for i in range(len(m_nt)))
