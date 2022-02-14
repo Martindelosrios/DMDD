@@ -24,9 +24,9 @@ from scdc.initial.matrix_element import FiducialMatrixElement
 # Configuration
 #{{{
 KMS = 3.33564e-6  # km/s in natural units
-mediator_mass = 10000
+mediator_mass = 10
 
-material = SILICON
+material = ALUMINUM
 vdf = StandardHaloDistribution(
     v_0    = 220 * KMS / material.v, 
     v_esc  = 550 * KMS / material.v,
@@ -40,7 +40,7 @@ vdf_iso = StandardHaloDistribution(
 response = HybridResponseFunction(material, 1) # The 1 is the coherence sign. Can be +1 or -1
 me_light = FiducialMatrixElement(mediator_mass = 0)
 me_heavy = FiducialMatrixElement(mediator_mass = mediator_mass)
-m_nt     = [1e11, 2e11] / material.m #np.concatenate((
+m_nt     = [1e3] / material.m #np.concatenate((
            #np.linspace(1, 9, 3) * 1e4, 
            #np.linspace(1, 9, 3) * 1e5
            #)) / material.m # Dark matter masses
@@ -51,13 +51,18 @@ N_events = np.array( [100] ) # Numero de eventos observados
 #{{{
 sim_light_energy_leaf_qp = []
 sim_light_energy_leaf_ph = []
+sim_light_cos_leaf_qp = []
+sim_light_cos_leaf_ph = []
 sim_light_dep_energy     = []
+
 for i, vali in enumerate(tqdm(m_nt)):
     sampler_light    = InitialSampler(vali, me_light, material, response, vdf, n_cq = 20, n_rq = 20)
     simulation_light = sampler_light.ensemble(N_events[0])
     simulation_light.chain()
     sim_light_energy_leaf_qp.append(simulation_light.leaf_particles.quasiparticles.energy)
     sim_light_energy_leaf_ph.append(simulation_light.leaf_particles.phonons.energy)
+    sim_light_cos_leaf_qp.append(simulation_light.leaf_particles.quasiparticles.cos_theta)
+    sim_light_cos_leaf_ph.append(simulation_light.leaf_particles.phonons.cos_theta)
 
     aux = np.zeros((N_events[0]))
     for j, valj in enumerate(simulation_light):
@@ -66,13 +71,18 @@ for i, vali in enumerate(tqdm(m_nt)):
 
 sim_heavy_energy_leaf_qp = []
 sim_heavy_energy_leaf_ph = []
+sim_heavy_cos_leaf_qp = []
+sim_heavy_cos_leaf_ph = []
 sim_heavy_dep_energy     = []
+
 for i, vali in enumerate(tqdm(m_nt)):
     sampler_heavy    = InitialSampler(vali, me_heavy, material, response, vdf, n_cq = 20, n_rq = 20)
     simulation_heavy = sampler_heavy.ensemble(N_events[0])
     simulation_heavy.chain()
     sim_heavy_energy_leaf_qp.append(simulation_heavy.leaf_particles.quasiparticles.energy)
     sim_heavy_energy_leaf_ph.append(simulation_heavy.leaf_particles.phonons.energy)
+    sim_heavy_cos_leaf_qp.append(simulation_heavy.leaf_particles.quasiparticles.cos_theta)
+    sim_heavy_cos_leaf_ph.append(simulation_heavy.leaf_particles.phonons.cos_theta)
     
     aux = np.zeros((N_events[0]))
     for j, valj in enumerate(simulation_heavy):
@@ -236,4 +246,50 @@ ax[1].yaxis.tick_right()
 plt.savefig('../graph/dep_energy_SI_' + 
             str(np.min(m_nt * material.m)) + '-' + str(np.max(m_nt * material.m)) + 
             '_MedMass_' + str(mediator_mass) + '_density.pdf')
+#}}}
+#{{{
+cmap = get_cmap('viridis', len(m_nt))
+
+fig, ax = plt.subplots(2, 2, sharex = False, sharey = False, figsize = (14, 10), gridspec_kw = dict(hspace = 0.3, wspace = 0))
+
+for i, vali in enumerate(m_nt):
+    if i <= (len(m_nt)/2):
+        ax[0,0].hist2d(sim_light_energy_leaf_qp[i], sim_light_cos_leaf_qp[i], color = cmap(i),
+                label = 'M_{DM} = ' + '{:.2e}'.format(vali * material.m) + ' eV')
+    else:
+        ax[0,0].hist2d(sim_light_energy_leaf_qp[i], sim_light_cos_leaf_qp[i], color = cmap(i))
+    ax[1,0].hist2d(sim_light_energy_leaf_ph[i], sim_light_cos_leaf_ph[i], color = cmap(i))
+
+    
+for i, vali in enumerate(m_nt):
+    if i > (len(m_nt)/2):
+        ax[0,1].hist2d(sim_heavy_energy_leaf_qp[i],sim_heavy_cos_leaf_qp[i], color = cmap(i),
+                label = 'M_{DM} = ' + '{:.2e}'.format(vali * material.m) + ' eV')
+    else:
+        ax[0,1].hist2d(sim_heavy_energy_leaf_qp[i],sim_heavy_cos_leaf_qp[i], color = cmap(i))
+    ax[1,1].hist2d(sim_heavy_energy_leaf_ph[i],sim_heavy_cos_leaf_ph[i], color = cmap(i))
+    
+ax[0,1].legend()
+ax[0,0].legend()
+ax[0,0].set_title('Light Mediator m = 0')
+ax[0,1].set_title('Heavy Mediator m = ' + str(mediator_mass))
+
+ax[0,0].set_xlabel('Energy [$\Delta$]')
+ax[0,1].set_xlabel('Energy [$\Delta$]')
+ax[0,1].yaxis.set_ticks_position('both')
+ax[0,1].yaxis.tick_right()
+ax[0,0].text(1 + 0.8e-5, 65, 'QP')
+ax[0,1].text(1 + 0.8e-5, 65, 'QP')
+ 
+ax[1,0].set_xlabel('Energy [$\Delta$]')
+ax[1,1].set_xlabel('Energy [$\Delta$]')
+ax[1,1].yaxis.set_ticks_position('both')
+ax[1,1].yaxis.tick_right()
+ax[1,0].text(0.17, 700, 'PH')
+ax[1,1].text(0.17, 700, 'PH')
+
+plt.savefig('../graph/energy_cos_QP+PH_SI_' + 
+            str(np.min(m_nt * material.m)) + '-' + str(np.max(m_nt * material.m)) + 
+            '_MedMass_' + str(mediator_mass) + '.pdf')
+
 #}}}
