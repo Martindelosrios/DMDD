@@ -102,10 +102,10 @@ def make_graph_dep_energy(m_nt, results, mediator_mass, mat_name):
 
 # Configuration
 #{{{
-name          = 'ALUMINUM_LR' # Name of the outpu hdf5 file and the plots
-material      = ALUMINUM # material
-m_nt          = [1e3, 1e4] / material.m # Masas de la DM normalizadas a la masa del material 
-mediator_mass = [0, 1e1] # Masas del mediador
+name          = 'SILICON_LR' # Name of the outpu hdf5 file and the plots
+material      = SILICON # material
+m_nt          = [1e6, 1e7, 1e11] / material.m # Masas de la DM normalizadas a la masa del material 
+mediator_mass = [0, 1e1, 1e2] # Masas del mediador
 N_events      = np.array( [100] ) # Numero de eventos observados
 #}}}
 
@@ -142,7 +142,7 @@ with h5py.File('../data/' + name + '.h5','a') as data:
             print('Starting analysis with mediator mass {:.2e}'.format(valj))
             print('\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\')
             print('\\\\\\\\\\\\\\o  o\\\\\\\\\\\\\\\\\\\\\\')
-            results = Parallel(n_jobs=5)(delayed(analyse)(i, matrix_element = mat_element) for i in range(len(m_nt)))
+            results = Parallel(n_jobs=3)(delayed(analyse)(i, matrix_element = mat_element) for i in range(len(m_nt)))
             make_graph(m_nt, results, valj, name)
             make_graph_dep_energy(m_nt, results, valj, name)
 
