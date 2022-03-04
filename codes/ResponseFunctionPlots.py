@@ -131,3 +131,102 @@ plt.show()
 
 #}}}
 
+# w and r2 fix
+#{{{
+
+r1 = np.logspace(-3, 0.51, 200)
+q  = np.logspace(-5, -0, 20)
+r2 = 1
+
+cmap = matplotlib.cm.viridis
+norm = matplotlib.colors.LogNorm(vmin=np.min(q), vmax=np.max(q))
+
+fig, axs = plt.subplots(4, 2, sharex = True, gridspec_kw = dict(hspace = 0, wspace = 0), figsize = (12,10))
+
+axs[0,0].set_ylabel('Response Function')
+axs[0,1].axis('off')
+
+w  = 1e-2
+for i, vali in enumerate(q):
+    res = []
+    for j in r1:
+        res.append(response(r1 = j, r2 = r2, q = vali, omega = w).numpy())
+    axs[0,0].plot(r1, np.asarray(res), label = 'q = {:.2e}'.format(vali) , c = cmap(norm(vali)) )
+axs[0,0].legend(loc = 'upper right', ncol = 3, bbox_to_anchor=(2.0, 1.05))
+axs[0,0].set_ylabel('Response Function')
+axs[0,0].set_yscale('log')
+axs[0,0].text(1.5, 1e-1, 'w = {}; r2 = {}'.format(w, r2))
+
+w  = 1e-1
+for i, vali in enumerate(q):
+    res = []
+    for j in r1:
+        res.append(response(r1 = j, r2 = r2, q = vali, omega = w).numpy())
+    axs[1,0].plot(r1, np.asarray(res), label = 'q = {:.2e}'.format(vali) , c = cmap(norm(vali)) )
+axs[1,0].set_ylabel('Response Function')
+axs[1,0].set_yscale('log')
+axs[1,0].text(1.5, 1e-1, 'w = {}; r2 = {}'.format(w, r2))
+
+w  = 0
+for i, vali in enumerate(q):
+    res = []
+    for j in r1:
+        res.append(response(r1 = j, r2 = r2, q = vali, omega = w).numpy())
+    axs[2,0].plot(r1, np.asarray(res), label = 'q = {:.2e}'.format(vali) , c = cmap(norm(vali)) )
+axs[2,0].set_ylabel('Response Function')
+axs[2,0].set_yscale('log')
+axs[2,0].text(1.5, 1e-1, 'w = {}; r2 = {}'.format(w, r2))
+
+w  = 1
+for i, vali in enumerate(q):
+    res = []
+    for j in r1:
+        res.append(response(r1 = j, r2 = r2, q = vali, omega = w).numpy())
+    axs[3,0].plot(r1, np.asarray(res), label = 'q = {:.2e}'.format(vali) , c = cmap(norm(vali)) )
+axs[3,0].set_ylabel('Response Function')
+axs[3,0].set_xlabel('$r_{1}$')
+axs[3,0].set_yscale('log')
+axs[3,0].text(1.5, 1e-1, 'w = {}; r2 = {}'.format(w, r2))
+
+
+w  = 15
+for i, vali in enumerate(q):
+    res = []
+    for j in r1:
+        res.append(response(r1 = j, r2 = r2, q = vali, omega = w).numpy())
+    axs[1,1].plot(r1, np.asarray(res), label = 'q = {:.2e}'.format(vali) , c = cmap(norm(vali)) )
+axs[1,1].yaxis.tick_right()
+axs[1,1].yaxis.set_label_position("right")
+axs[1,1].set_ylabel('Response Function')
+axs[1,1].set_yscale('log')
+axs[1,1].text(1.5, 2, 'w = {}; r2 = {}'.format(w, r2))
+
+w  = 50
+for i, vali in enumerate(q):
+    res = []
+    for j in r1:
+        res.append(response(r1 = j, r2 = r2, q = vali, omega = w).numpy())
+    axs[2,1].plot(r1, np.asarray(res), label = 'q = {:.2e}'.format(vali) , c = cmap(norm(vali)) )
+axs[2,1].yaxis.tick_right()
+axs[2,1].yaxis.set_label_position("right")
+axs[2,1].set_ylabel('Response Function')
+axs[2,1].set_yscale('log')
+axs[2,1].text(1.5, 1, 'w = {}; r2 = {}'.format(w, r2))
+
+w  = 100
+for i, vali in enumerate(q):
+    res = []
+    for j in r1:
+        res.append(response(r1 = j, r2 = r2, q = vali, omega = w).numpy())
+    axs[3,1].plot(r1, np.asarray(res), label = 'q = {:.2e}'.format(vali) , c = cmap(norm(vali)) )
+axs[3,1].yaxis.tick_right()
+axs[3,1].yaxis.set_label_position("right")
+axs[3,1].set_ylabel('Response Function')
+axs[3,1].set_yscale('log')
+axs[3,1].text(1.5, 5e-1, 'w = {}; r2 = {}'.format(w, r2))
+axs[3,1].set_xlabel('$r_{1}$')
+
+plt.show()
+
+#}}}
+
