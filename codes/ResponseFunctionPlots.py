@@ -7,6 +7,12 @@ from matplotlib.cm import get_cmap
 
 from scdc.materials import ALUMINUM, NIOBIUM, SILICON
 from scdc.initial.response import HybridResponseFunction
+from scdc.initial.distribution.integral import InitialSampler
+from scdc.initial.halo import StandardHaloDistribution
+from scdc.initial.response import HybridResponseFunction
+from scdc.initial.matrix_element import FiducialMatrixElement
+KMS = 3.33564e-6  # km/s in natural units
+
 #}}}
 
 material = ALUMINUM
@@ -230,3 +236,106 @@ plt.show()
 
 #}}}
 
+
+# Now let's add DM 
+#{{{
+vdf = StandardHaloDistribution(
+    v_0    = 220 * KMS / material.v, 
+    v_esc  = 550 * KMS / material.v,
+    v_wind = 230 * KMS / material.v
+)
+
+me_heavy = FiducialMatrixElement(mediator_mass = 10)
+m_dm = 1e3/material.m # Dark matter mass in material units
+#}}}
+
+# Let's compute a sampling
+#{{{
+sampler = InitialSampler(m_dm, me_heavy, material, response, vdf, n_cq = 20, n_rq = 20)
+
+fig, ax = plt.subplots(3,2, gridspec_kw = {'hspace':0.2, 'wspace':0.2})
+
+r1_vals = np.sort(np.random.choice(sampler.r1_vals, 6))
+c  = 0 
+for i in range(3):
+    for j in range(2):
+        r1 = r1_vals[c]
+        c = c+1
+        q_rate_grid = sampler.q_rate_grid(r1)
+        
+        sns.heatmap(np.log10(q_grid[2]), ax = ax[0,0])
+        ax[i,j].set_xticks([0,10,20,30,40,50,60,70,80,90,99])
+        ax[i,j].set_xticklabels(q_grid[0][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
+        ax[i,j].set_yticks([0,10,20,30,40,50,60,70,80,90,99])
+        ax[i,j].set_yticklabels(q_grid[1][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
+        ax[i,j].set_xlabel('Cq')
+        ax[i,j].set_ylabel('Rq')
+        ax[i,j].set_title('r1 = {}'.format(r1))
+
+r1 = 0.1
+q_rate_grid = sampler.q_rate_grid(r1)
+
+sns.heatmap(np.log10(q_grid[2]), ax = ax[1,0])
+ax[1,0].set_xticks([0,10,20,30,40,50,60,70,80,90,99])
+ax[1,0].set_xticklabels(q_grid[0][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
+ax[1,0].set_yticks([0,10,20,30,40,50,60,70,80,90,99])
+ax[1,0].set_yticklabels(q_grid[1][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
+ax[1,0].set_xlabel('Cq')
+ax[1,0].set_ylabel('Rq')
+ax[1,0].set_title('r1 = {}'.format(r1))
+
+r1 = 1
+q_rate_grid = sampler.q_rate_grid(r1)
+
+sns.heatmap(np.log10(q_grid[2]), ax = ax[2,0])
+ax[2,0].set_xticks([0,10,20,30,40,50,60,70,80,90,99])
+ax[2,0].set_xticklabels(q_grid[0][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
+ax[2,0].set_yticks([0,10,20,30,40,50,60,70,80,90,99])
+ax[2,0].set_yticklabels(q_grid[1][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
+ax[2,0].set_xlabel('Cq')
+ax[2,0].set_ylabel('Rq')
+ax[2,0].set_title('r1 = {}'.format(r1))
+
+r1 = 10
+q_rate_grid = sampler.q_rate_grid(r1)
+
+sns.heatmap(np.log10(q_grid[2]), ax = ax[0,1])
+ax[0,1].set_xticks([0,10,20,30,40,50,60,70,80,90,99])
+ax[0,1].set_xticklabels(q_grid[0][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
+ax[0,1].set_yticks([0,10,20,30,40,50,60,70,80,90,99])
+ax[0,1].set_yticklabels(q_grid[1][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
+ax[0,1].set_xlabel('Cq')
+ax[0,1].set_ylabel('Rq')
+ax[0,1].set_title('r1 = {}'.format(r1))
+
+r1 = 100
+q_rate_grid = sampler.q_rate_grid(r1)
+
+sns.heatmap(np.log10(q_grid[2]), ax = ax[1,1])
+ax[1,1].set_xticks([0,10,20,30,40,50,60,70,80,90,99])
+ax[1,1].set_xticklabels(q_grid[0][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
+ax[1,1].set_yticks([0,10,20,30,40,50,60,70,80,90,99])
+ax[1,1].set_yticklabels(q_grid[1][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
+ax[1,1].set_xlabel('Cq')
+ax[1,1].set_ylabel('Rq')
+ax[1,1].set_title('r1 = {}'.format(r1))
+
+r1 = 1000
+q_rate_grid = sampler.q_rate_grid(r1)
+
+sns.heatmap(np.log10(q_grid[2]), ax = ax[2,1])
+ax[2,1].set_xticks([0,10,20,30,40,50,60,70,80,90,99])
+ax[2,1].set_xticklabels(q_grid[0][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
+ax[2,1].set_yticks([0,10,20,30,40,50,60,70,80,90,99])
+ax[2,1].set_yticklabels(q_grid[1][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
+ax[2,1].set_xlabel('Cq')
+ax[2,1].set_ylabel('Rq')
+ax[2,1].set_title('r1 = {}'.format(r1))
+
+plt.show()
+
+#}}}
+
+
+simulation = sampler.ensemble(500)
+simulation.chain()
