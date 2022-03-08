@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 from matplotlib.cm import get_cmap
+import seaborn as sns
 
 from scdc.materials import ALUMINUM, NIOBIUM, SILICON
 from scdc.initial.response import HybridResponseFunction
@@ -32,7 +33,7 @@ response = HybridResponseFunction(material, 1) # The 1 is the coherence sign. Ca
 * Inside the response function q and w goes into the self.material.epsilon_lindhard function but there is no information of the units.
 '''
 
-# r1 and r2 fix
+# r1 and r2 fix (GRAPH)
 #{{{
 
 w = np.logspace(-5, 1.5, 200)
@@ -137,7 +138,7 @@ plt.show()
 
 #}}}
 
-# w and r2 fix
+# w and r2 fix (GRAPH)
 #{{{
 
 r1 = np.logspace(-3, 0.51, 200)
@@ -238,7 +239,6 @@ plt.show()
 
 
 # Now let's add DM 
-#{{{
 vdf = StandardHaloDistribution(
     v_0    = 220 * KMS / material.v, 
     v_esc  = 550 * KMS / material.v,
@@ -247,15 +247,21 @@ vdf = StandardHaloDistribution(
 
 me_heavy = FiducialMatrixElement(mediator_mass = 10)
 m_dm = 1e3/material.m # Dark matter mass in material units
-#}}}
 
 # Let's compute a sampling
+resolution = 100
+sampler = InitialSampler(m_dm, me_heavy, material, response, vdf, n_cq = resolution,
+                         n_rq = resolution)
+
+# rate grid in q and cq for fix r1 (GRAPH)
 #{{{
-sampler = InitialSampler(m_dm, me_heavy, material, response, vdf, n_cq = 20, n_rq = 20)
+ind_ticks = np.linspace(0, (resolution - 1), 10).astype('int')
+fig, ax = plt.subplots(3,2, sharex = True, gridspec_kw = {'hspace':0, 'wspace':0.2},
+                       figsize = (14,10))
 
-fig, ax = plt.subplots(3,2, gridspec_kw = {'hspace':0.2, 'wspace':0.2})
+#r1_vals = np.sort(np.random.choice(sampler.r1_vals, 6))
+r1_vals = np.linspace(np.min(sampler.r1_vals), np.max(sampler.r1_vals), 6)
 
-r1_vals = np.sort(np.random.choice(sampler.r1_vals, 6))
 c  = 0 
 for i in range(3):
     for j in range(2):
@@ -263,79 +269,97 @@ for i in range(3):
         c = c+1
         q_rate_grid = sampler.q_rate_grid(r1)
         
-        sns.heatmap(np.log10(q_grid[2]), ax = ax[0,0])
-        ax[i,j].set_xticks([0,10,20,30,40,50,60,70,80,90,99])
-        ax[i,j].set_xticklabels(q_grid[0][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
-        ax[i,j].set_yticks([0,10,20,30,40,50,60,70,80,90,99])
-        ax[i,j].set_yticklabels(q_grid[1][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
-        ax[i,j].set_xlabel('Cq')
-        ax[i,j].set_ylabel('Rq')
-        ax[i,j].set_title('r1 = {}'.format(r1))
-
-r1 = 0.1
-q_rate_grid = sampler.q_rate_grid(r1)
-
-sns.heatmap(np.log10(q_grid[2]), ax = ax[1,0])
-ax[1,0].set_xticks([0,10,20,30,40,50,60,70,80,90,99])
-ax[1,0].set_xticklabels(q_grid[0][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
-ax[1,0].set_yticks([0,10,20,30,40,50,60,70,80,90,99])
-ax[1,0].set_yticklabels(q_grid[1][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
-ax[1,0].set_xlabel('Cq')
-ax[1,0].set_ylabel('Rq')
-ax[1,0].set_title('r1 = {}'.format(r1))
-
-r1 = 1
-q_rate_grid = sampler.q_rate_grid(r1)
-
-sns.heatmap(np.log10(q_grid[2]), ax = ax[2,0])
-ax[2,0].set_xticks([0,10,20,30,40,50,60,70,80,90,99])
-ax[2,0].set_xticklabels(q_grid[0][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
-ax[2,0].set_yticks([0,10,20,30,40,50,60,70,80,90,99])
-ax[2,0].set_yticklabels(q_grid[1][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
-ax[2,0].set_xlabel('Cq')
-ax[2,0].set_ylabel('Rq')
-ax[2,0].set_title('r1 = {}'.format(r1))
-
-r1 = 10
-q_rate_grid = sampler.q_rate_grid(r1)
-
-sns.heatmap(np.log10(q_grid[2]), ax = ax[0,1])
-ax[0,1].set_xticks([0,10,20,30,40,50,60,70,80,90,99])
-ax[0,1].set_xticklabels(q_grid[0][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
-ax[0,1].set_yticks([0,10,20,30,40,50,60,70,80,90,99])
-ax[0,1].set_yticklabels(q_grid[1][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
-ax[0,1].set_xlabel('Cq')
-ax[0,1].set_ylabel('Rq')
-ax[0,1].set_title('r1 = {}'.format(r1))
-
-r1 = 100
-q_rate_grid = sampler.q_rate_grid(r1)
-
-sns.heatmap(np.log10(q_grid[2]), ax = ax[1,1])
-ax[1,1].set_xticks([0,10,20,30,40,50,60,70,80,90,99])
-ax[1,1].set_xticklabels(q_grid[0][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
-ax[1,1].set_yticks([0,10,20,30,40,50,60,70,80,90,99])
-ax[1,1].set_yticklabels(q_grid[1][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
-ax[1,1].set_xlabel('Cq')
-ax[1,1].set_ylabel('Rq')
-ax[1,1].set_title('r1 = {}'.format(r1))
-
-r1 = 1000
-q_rate_grid = sampler.q_rate_grid(r1)
-
-sns.heatmap(np.log10(q_grid[2]), ax = ax[2,1])
-ax[2,1].set_xticks([0,10,20,30,40,50,60,70,80,90,99])
-ax[2,1].set_xticklabels(q_grid[0][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
-ax[2,1].set_yticks([0,10,20,30,40,50,60,70,80,90,99])
-ax[2,1].set_yticklabels(q_grid[1][[0,10,20,30,40,50,60,70,80,90,99]].round(2))
-ax[2,1].set_xlabel('Cq')
-ax[2,1].set_ylabel('Rq')
-ax[2,1].set_title('r1 = {}'.format(r1))
+        if j == 0:
+            sns.heatmap(np.log10(q_rate_grid[2]), ax = ax[i,j], cbar = False)
+        else:
+            sns.heatmap(np.log10(q_rate_grid[2]), ax = ax[i,j])
+        ax[i,j].set_xticks(ind_ticks)
+        ax[i,j].set_xticklabels(q_rate_grid[0][ind_ticks].round(2))
+        ax[i,j].set_yticks(ind_ticks)
+        ax[i,j].set_yticklabels(np.log10(q_rate_grid[1][ind_ticks]).round(1), rotation = 45)
+        ax[i,j].grid(True)
+        if i == 2:
+            ax[i,j].set_xlabel('Cq')
+        else:
+            ax[i,j].set_xlabel('')
+        if j == 0:
+            ax[i,j].set_ylabel('Log10(Rq)')
+        else:
+            ax[i,j].set_ylabel('')
+        ax[i,j].text(0.4, 4, 'r1 = {:.5f}'.format(r1))
 
 plt.show()
-
 #}}}
 
+
+# PDF in r3 for fix r1, rq and cq (GRAPH)
+#{{{
+r1_vals = np.linspace(np.min(sampler.r1_vals), np.max(sampler.r1_vals), 6)
+rq_vals = np.linspace(np.min(q_rate_grid[1]), np.max(q_rate_grid[1]), 6)
+cq_vals = np.linspace(np.min(q_rate_grid[0]), np.max(q_rate_grid[0]), 16)
+
+cmap = matplotlib.cm.viridis
+norm = matplotlib.colors.Normalize(vmin=np.min(cq_vals), vmax=np.max(cq_vals))
+
+r1 = r1_vals[5] # We will have the same r1 for all the panels
+
+fig, ax = plt.subplots(3,2, gridspec_kw = {'hspace':0.2, 'wspace':0.2},
+                       figsize = (14,10))
+
+from matplotlib.lines import Line2D
+custom_lines = []
+for i in cq_vals:
+    custom_lines.append( Line2D([0],[0], marker = '.', color = cmap(norm(i)), 
+            label = 'cq = {:.2f}'.format(i)) )
+
+c  = 0 
+for i in range(3):
+    for j in range(2):
+        rq = rq_vals[c] # Each panel will have a different rq
+        c = c+1
+        for cq in cq_vals:
+            r2 = np.sqrt(rq**2 + r1**2 - 2*rq*r1*cq)
+            try:
+                r3_domain = sampler.r3_domain(r1, rq, cq)
+
+                r3_vals_0  = np.linspace(r3_domain[0], r3_domain[1], 100)
+                cq3_vals_0 = sampler._cq3(r1, r2, r3_vals_0, rq,  1) # We choose the + solution
+                r3_vals_0  = r3_vals_0[np.where(np.imag(cq3_vals_0) == 0)[0]] # Keep only those r3 vals that give place to real cq3 values
+                cq3_vals_0 = cq3_vals_0[np.where(np.imag(cq3_vals_0) == 0)[0]] # Keep only those r3 vals that give place to real cq3 values
+
+                r3_vals_1  = np.linspace(r3_domain[0], r3_domain[1], 1000)
+                cq3_vals_1 = sampler._cq3(r1, r2, r3_vals_1, rq, -1) # We choose the - solution
+                r3_vals_1  = r3_vals_1[np.where(np.imag(cq3_vals_1) == 0)[0]] # Keep only those r3 vals that give place to real cq3 values
+                cq3_vals_1 = cq3_vals_1[np.where(np.imag(cq3_vals_1) == 0)[0]] # Keep only those r3 vals that give place to real cq3 values
+                
+                r3_vals  = np.concatenate((r3_vals_0, r3_vals_1))
+                cq3_vals = np.concatenate((cq3_vals_0, cq3_vals_1))
+
+                ind_sort = np.argsort(r3_vals)
+                r3_vals  = r3_vals[ind_sort]
+                cq3_vals = cq3_vals[ind_sort]
+
+                probs = sampler.pdf(r1,rq,cq,r3_vals).numpy()
+                #r4_vals = np.sqrt(rq**2 + r3_vals**2 - 2*rq*r3_vals*cq3_vals + 0j)
+                #omega_vals = sampler._omega(r1, rq, cq_vals)
+                #probs = sampler.response(r3_vals,r4_vals,rq,omega_vals).numpy()
+                ax[i,j].scatter(cq3_vals, probs, label = 'Cq = {:.2f}'.format(cq), marker = '.', c = cmap(norm(cq)) )
+            except:
+                pass
+
+        ax[i,j].text(0.05,0.9, 'rq = {:.2e}'.format(rq), transform = ax[i,j].transAxes)
+        ax[i,j].set_yscale('log')
+        #ax[i,j].legend()
+        ax[i,j].set_ylim(7e-7, 1e-4)
+ax[2,0].set_xlabel('cq3')
+ax[2,1].set_xlabel('cq3')
+ax[0,0].set_ylabel('Rate')
+ax[1,0].set_ylabel('Rate')
+ax[2,0].set_ylabel('Rate')
+ax[0,0].legend(handles = custom_lines, ncol = 6, bbox_to_anchor = (2,1.4))
+ax[0,0].text(-0.15, 2e-4, 'r1 = {:.2e}'.format(r1))
+plt.show()
+#}}}
 
 simulation = sampler.ensemble(500)
 simulation.chain()
