@@ -319,6 +319,7 @@ for i in range(3):
         c = c+1
         for cq in cq_vals:
             r2 = np.sqrt(rq**2 + r1**2 - 2*rq*r1*cq)
+            omega = sampler._omega(r1, rq, cq)
             try:
                 r3_domain = sampler.r3_domain(r1, rq, cq)
 
@@ -360,14 +361,15 @@ plt.show()
 # Response Function in r3 for fix r1, rq and cq (GRAPH)
 #{{{
 r1_vals = np.linspace(np.min(sampler.r1_vals), np.max(sampler.r1_vals), 6)
+
+r1 = r1_vals[0] # We will have the same r1 for all the panels
+q_rate_grid = sampler.q_rate_grid(r1)
+
 rq_vals = np.linspace(np.min(q_rate_grid[1]), np.max(q_rate_grid[1]), 6)
 cq_vals = np.linspace(np.min(q_rate_grid[0]), np.max(q_rate_grid[0]), 16)
 
 cmap = matplotlib.cm.viridis
 norm = matplotlib.colors.Normalize(vmin=np.min(cq_vals), vmax=np.max(cq_vals))
-
-r1 = r1_vals[5] # We will have the same r1 for all the panels
-
 fig, ax = plt.subplots(3,2, gridspec_kw = {'hspace':0.2, 'wspace':0.2},
                        figsize = (14,10))
 
@@ -384,6 +386,7 @@ for i in range(3):
         c = c+1
         for cq in cq_vals:
             r2 = np.sqrt(rq**2 + r1**2 - 2*rq*r1*cq)
+            omega = sampler._omega(r1, rq, cq)
             try:
                 r3_domain = sampler.r3_domain(r1, rq, cq)
 
@@ -405,23 +408,22 @@ for i in range(3):
                 cq3_vals = cq3_vals[ind_sort]
 
                 r4_vals = np.sqrt(rq**2 + r3_vals**2 - 2*rq*r3_vals*cq3_vals + 0j)
-                omega_vals = sampler._omega(r1, rq, cq_vals)
-                probs = sampler.response(r3_vals,r4_vals,rq,omega_vals).numpy()
+                probs = sampler.response(r3_vals, r4_vals, rq, omega).numpy()
 
-                ax[i,j].scatter(cq3_vals, probs, label = 'Cq = {:.2f}'.format(cq), marker = '.', c = cmap(norm(cq)) )
+                ax[i,j].scatter(cq3_vals, probs, label = 'Cq = {:.2f}'.format(cq) + 'w = {:.2f}'.format(omega), marker = '.', c = cmap(norm(cq)) )
             except:
                 pass
 
-        ax[i,j].text(0.05,0.9, 'rq = {:.2e}'.format(rq), transform = ax[i,j].transAxes)
+        ax[i,j].text(0.05,0.1, 'rq = {:.2e}'.format(rq), transform = ax[i,j].transAxes)
         ax[i,j].set_yscale('log')
-        ax[i,j].set_ylim(7e-7, 1e-4)
+        #ax[i,j].set_ylim(7e-7, 1e-4)
 ax[2,0].set_xlabel('cq3')
 ax[2,1].set_xlabel('cq3')
 ax[0,0].set_ylabel('Rate')
 ax[1,0].set_ylabel('Rate')
 ax[2,0].set_ylabel('Rate')
 ax[0,0].legend(handles = custom_lines, ncol = 6, bbox_to_anchor = (2,1.4))
-ax[0,0].text(-0.15, 2e-4, 'r1 = {:.2e}'.format(r1))
+ax[0,0].text(0.05, 1.1, 'r1 = {:.2e}'.format(r1), transform = ax[0,0].transAxes)
 plt.show()
 #}}}
 
