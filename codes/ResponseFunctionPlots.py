@@ -291,8 +291,73 @@ for i in range(3):
 plt.show()
 #}}}
 
-
 # PDF in r3 for fix r1, rq and cq (GRAPH)
+#{{{
+r1_vals = np.linspace(np.min(sampler.r1_vals), np.max(sampler.r1_vals), 6)
+
+r1 = r1_vals[4] # We will have the same r1 for all the panels
+q_rate_grid = sampler.q_rate_grid(r1)
+
+rq_vals = np.linspace(np.min(q_rate_grid[1]), np.max(q_rate_grid[1]), 6)
+cq_vals = np.linspace(np.min(q_rate_grid[0]), np.max(q_rate_grid[0]), 16)
+
+cmap = matplotlib.cm.viridis
+norm = matplotlib.colors.Normalize(vmin=np.min(cq_vals), vmax=np.max(cq_vals))
+fig, ax = plt.subplots(3,2, gridspec_kw = {'hspace':0.2, 'wspace':0.2},
+                       figsize = (14,10))
+
+from matplotlib.lines import Line2D
+custom_lines = []
+for i in cq_vals:
+    custom_lines.append( Line2D([0],[0], marker = '.', color = cmap(norm(i)), 
+            label = 'cq = {:.2f}'.format(i)) )
+
+c  = 0 
+for i in range(3):
+    for j in range(2):
+        rq = rq_vals[c] # Each panel will have a different rq
+        c = c+1
+        for cq in cq_vals:
+            r2 = np.sqrt(rq**2 + r1**2 - 2*rq*r1*cq)
+            try:
+                r3_domain = sampler.r3_domain(r1, rq, cq)
+
+                r3_vals_0  = np.linspace(r3_domain[0], r3_domain[1], 100)
+                cq3_vals_0 = sampler._cq3(r1, r2, r3_vals_0, rq,  1) # We choose the + solution
+                r3_vals_0  = r3_vals_0[np.where(np.imag(cq3_vals_0) == 0)[0]] # Keep only those r3 vals that give place to real cq3 values
+                cq3_vals_0 = cq3_vals_0[np.where(np.imag(cq3_vals_0) == 0)[0]] # Keep only those r3 vals that give place to real cq3 values
+
+                r3_vals_1  = np.linspace(r3_domain[0], r3_domain[1], 1000)
+                cq3_vals_1 = sampler._cq3(r1, r2, r3_vals_1, rq, -1) # We choose the - solution
+                r3_vals_1  = r3_vals_1[np.where(np.imag(cq3_vals_1) == 0)[0]] # Keep only those r3 vals that give place to real cq3 values
+                cq3_vals_1 = cq3_vals_1[np.where(np.imag(cq3_vals_1) == 0)[0]] # Keep only those r3 vals that give place to real cq3 values
+                
+                r3_vals  = np.concatenate((r3_vals_0, r3_vals_1))
+                cq3_vals = np.concatenate((cq3_vals_0, cq3_vals_1))
+
+                ind_sort = np.argsort(r3_vals)
+                r3_vals  = r3_vals[ind_sort]
+                cq3_vals = cq3_vals[ind_sort]
+
+                probs = sampler.pdf(r1,rq,cq,r3_vals).numpy()
+                ax[i,j].scatter(cq3_vals, probs, label = 'Cq = {:.2f}'.format(cq), marker = '.', c = cmap(norm(cq)) )
+            except:
+                pass
+
+        ax[i,j].text(0.05,0.9, 'rq = {:.2e}'.format(rq), transform = ax[i,j].transAxes)
+        ax[i,j].set_yscale('log')
+        ax[i,j].set_ylim(7e-7, 1e-4)
+ax[2,0].set_xlabel('cq3')
+ax[2,1].set_xlabel('cq3')
+ax[0,0].set_ylabel('Rate')
+ax[1,0].set_ylabel('Rate')
+ax[2,0].set_ylabel('Rate')
+ax[0,0].legend(handles = custom_lines, ncol = 6, bbox_to_anchor = (2,1.4))
+ax[0,0].text(-0.15, 2e-4, 'r1 = {:.2e}'.format(r1))
+plt.show()
+#}}}
+
+# Response Function in r3 for fix r1, rq and cq (GRAPH)
 #{{{
 r1_vals = np.linspace(np.min(sampler.r1_vals), np.max(sampler.r1_vals), 6)
 rq_vals = np.linspace(np.min(q_rate_grid[1]), np.max(q_rate_grid[1]), 6)
@@ -339,17 +404,16 @@ for i in range(3):
                 r3_vals  = r3_vals[ind_sort]
                 cq3_vals = cq3_vals[ind_sort]
 
-                probs = sampler.pdf(r1,rq,cq,r3_vals).numpy()
-                #r4_vals = np.sqrt(rq**2 + r3_vals**2 - 2*rq*r3_vals*cq3_vals + 0j)
-                #omega_vals = sampler._omega(r1, rq, cq_vals)
-                #probs = sampler.response(r3_vals,r4_vals,rq,omega_vals).numpy()
+                r4_vals = np.sqrt(rq**2 + r3_vals**2 - 2*rq*r3_vals*cq3_vals + 0j)
+                omega_vals = sampler._omega(r1, rq, cq_vals)
+                probs = sampler.response(r3_vals,r4_vals,rq,omega_vals).numpy()
+
                 ax[i,j].scatter(cq3_vals, probs, label = 'Cq = {:.2f}'.format(cq), marker = '.', c = cmap(norm(cq)) )
             except:
                 pass
 
         ax[i,j].text(0.05,0.9, 'rq = {:.2e}'.format(rq), transform = ax[i,j].transAxes)
         ax[i,j].set_yscale('log')
-        #ax[i,j].legend()
         ax[i,j].set_ylim(7e-7, 1e-4)
 ax[2,0].set_xlabel('cq3')
 ax[2,1].set_xlabel('cq3')
