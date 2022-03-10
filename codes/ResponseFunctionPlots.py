@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 from matplotlib.cm import get_cmap
+from matplotlib.lines import Line2D
 import seaborn as sns
 
 from scdc.materials import ALUMINUM, NIOBIUM, SILICON
@@ -274,16 +275,17 @@ for i in range(3):
         else:
             sns.heatmap(np.log10(q_rate_grid[2]), ax = ax[i,j])
         ax[i,j].set_xticks(ind_ticks)
-        ax[i,j].set_xticklabels(q_rate_grid[0][ind_ticks].round(2))
+        ax[i,j].set_xticklabels(np.log10(q_rate_grid[1][ind_ticks]).round(1))
+        ax[i,j].invert_yaxis()
         ax[i,j].set_yticks(ind_ticks)
-        ax[i,j].set_yticklabels(np.log10(q_rate_grid[1][ind_ticks]).round(1), rotation = 45)
+        ax[i,j].set_yticklabels(q_rate_grid[0][ind_ticks].round(2), rotation = 45)
         ax[i,j].grid(True)
         if i == 2:
-            ax[i,j].set_xlabel('Cq')
+            ax[i,j].set_xlabel('Log10(Rq)')
         else:
             ax[i,j].set_xlabel('')
         if j == 0:
-            ax[i,j].set_ylabel('Log10(Rq)')
+            ax[i,j].set_ylabel('Cq')
         else:
             ax[i,j].set_ylabel('')
         ax[i,j].text(0.4, 4, 'r1 = {:.5f}'.format(r1))
@@ -295,7 +297,7 @@ plt.show()
 #{{{
 r1_vals = np.linspace(np.min(sampler.r1_vals), np.max(sampler.r1_vals), 6)
 
-r1 = r1_vals[4] # We will have the same r1 for all the panels
+r1 = r1_vals[3] # We will have the same r1 for all the panels
 q_rate_grid = sampler.q_rate_grid(r1)
 
 rq_vals = np.linspace(np.min(q_rate_grid[1]), np.max(q_rate_grid[1]), 6)
@@ -322,6 +324,8 @@ for i in range(3):
             if omega >= 0:
                 try:
                     r3_domain = sampler.r3_domain(r1, rq, cq)
+                    cq3_domain_0 = [sampler._cq3(r1, r2, r3_domain[0], rq,  1), sampler._cq3(r1, r2, r3_domain[1], rq,  1)]
+                    cq3_domain_1 = [sampler._cq3(r1, r2, r3_domain[0], rq,  -1), sampler._cq3(r1, r2, r3_domain[1], rq,  -1)]
 
                     r3_vals_0  = np.linspace(r3_domain[0], r3_domain[1], 100)
                     cq3_vals_0 = sampler._cq3(r1, r2, r3_vals_0, rq,  1) # We choose the + solution
@@ -342,23 +346,23 @@ for i in range(3):
 
                     probs = sampler.pdf(r1,rq,cq,r3_vals).numpy()
                     ax[i,j].scatter(cq3_vals, probs, c = cmap(norm(cq)) )
+                    ax[i,j].axvline(x = cq3_domain_0[0], c = cmap(norm(cq)))
+                    ax[i,j].axvline(x = cq3_domain_0[1], c = cmap(norm(cq)))
+                    ax[i,j].axvline(x = cq3_domain_1[0], c = cmap(norm(cq)))
+                    ax[i,j].axvline(x = cq3_domain_1[1], c = cmap(norm(cq)))
                 except:
                     pass
 
-        ax[i,j].axvline(x = cq3_domain_0[0])
-        ax[i,j].axvline(x = cq3_domain_0[1])
-        ax[i,j].axvline(x = cq3_domain_1[0])
-        ax[i,j].axvline(x = cq3_domain_1[1])
         ax[i,j].text(0.05,0.9, 'rq = {:.2e}'.format(rq), transform = ax[i,j].transAxes)
         ax[i,j].set_yscale('log')
-        ax[i,j].set_ylim(7e-7, 1e-4)
+        #ax[i,j].set_ylim(7e-7, 1e-4)
 ax[2,0].set_xlabel('cq3')
 ax[2,1].set_xlabel('cq3')
 ax[0,0].set_ylabel('Rate')
 ax[1,0].set_ylabel('Rate')
 ax[2,0].set_ylabel('Rate')
 ax[0,0].legend(handles = custom_lines, ncol = 6, bbox_to_anchor = (2,1.4))
-ax[0,0].text(-0.15, 2e-4, 'r1 = {:.2e}'.format(r1))
+ax[0,0].text(0.05, 1.1, 'r1 = {:.2e}'.format(r1), transform = ax[0,0].transAxes)
 plt.show()
 #}}}
 
@@ -366,7 +370,7 @@ plt.show()
 #{{{
 r1_vals = np.linspace(np.min(sampler.r1_vals), np.max(sampler.r1_vals), 6)
 
-r1 = r1_vals[4] # We will have the same r1 for all the panels
+r1 = r1_vals[3] # We will have the same r1 for all the panels
 q_rate_grid = sampler.q_rate_grid(r1)
 
 rq_vals = np.linspace(np.min(q_rate_grid[1]), np.max(q_rate_grid[1]), 6)
@@ -377,7 +381,6 @@ norm = matplotlib.colors.Normalize(vmin=np.min(cq_vals), vmax=np.max(cq_vals))
 fig, ax = plt.subplots(3,2, gridspec_kw = {'hspace':0.2, 'wspace':0.2},
                        figsize = (14,14))
 
-from matplotlib.lines import Line2D
 custom_lines = []
 for i in cq_vals:
     custom_lines.append( Line2D([0],[0], marker = '.', color = cmap(norm(i)), 
@@ -418,13 +421,13 @@ for i in range(3):
                     probs = sampler.response(r3_vals, r4_vals, rq, omega).numpy()
 
                     ax[i,j].scatter(cq3_vals, probs, marker = '.', c = cmap(norm(cq)) )
+                    ax[i,j].axvline(x = cq3_domain_0[0], c = cmap(norm(cq)))
+                    ax[i,j].axvline(x = cq3_domain_0[1], c = cmap(norm(cq)))
+                    ax[i,j].axvline(x = cq3_domain_1[0], c = cmap(norm(cq)))
+                    ax[i,j].axvline(x = cq3_domain_1[1], c = cmap(norm(cq)))
                 except:
                     pass
 
-        ax[i,j].axvline(x = cq3_domain_0[0])
-        ax[i,j].axvline(x = cq3_domain_0[1])
-        ax[i,j].axvline(x = cq3_domain_1[0])
-        ax[i,j].axvline(x = cq3_domain_1[1])
         ax[i,j].text(0.05,0.1, 'rq = {:.2e}'.format(rq), transform = ax[i,j].transAxes)
         ax[i,j].set_yscale('log')
         #ax[i,j].set_ylim(7e-7, 1e-4)
@@ -433,8 +436,8 @@ ax[2,1].set_xlabel('cq3')
 ax[0,0].set_ylabel('Rate')
 ax[1,0].set_ylabel('Rate')
 ax[2,0].set_ylabel('Rate')
-ax[0,0].legend(handles = custom_lines, ncol = 7, bbox_to_anchor = (2,1.4))
-ax[0,0].text(0.05, 1.0, 'r1 = {:.2e}'.format(r1), transform = ax[0,0].transAxes)
+ax[0,0].legend(handles = custom_lines, ncol = 7, bbox_to_anchor = (2,1.5))
+ax[0,0].text(0.05, 1.05, 'r1 = {:.2e}'.format(r1), transform = ax[0,0].transAxes)
 plt.show()
 #}}}
 
