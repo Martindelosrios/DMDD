@@ -250,17 +250,16 @@ me_heavy = FiducialMatrixElement(mediator_mass = 10)
 m_dm = 1e3/material.m # Dark matter mass in material units
 
 # Let's compute a sampling
-resolution = 100
+resolution = 20
 sampler = InitialSampler(m_dm, me_heavy, material, response, vdf, n_cq = resolution,
                          n_rq = resolution)
 
 # rate grid in q and cq for fix r1 (GRAPH)
 #{{{
 ind_ticks = np.linspace(0, (resolution - 1), 10).astype('int')
-fig, ax = plt.subplots(3,2, sharex = True, gridspec_kw = {'hspace':0, 'wspace':0.2},
+fig, ax = plt.subplots(3,2, sharex = True, sharey = True, gridspec_kw = {'hspace':0, 'wspace':0.},
                        figsize = (14,10))
 
-#r1_vals = np.sort(np.random.choice(sampler.r1_vals, 6))
 r1_vals = np.linspace(np.min(sampler.r1_vals), np.max(sampler.r1_vals), 6)
 
 c  = 0 
@@ -269,16 +268,23 @@ for i in range(3):
         r1 = r1_vals[c]
         c = c+1
         q_rate_grid = sampler.q_rate_grid(r1)
+        extent = [ np.log10(np.min(q_rate_grid[1])), np.log10(np.max(q_rate_grid[1])),
+                   np.min(q_rate_grid[0]), np.max(q_rate_grid[0]) ]
         
+        cq_kin_lim = (1/(2*r1)) * q_rate_grid[1][ind_ticks] # Kinematic limit for omega > 0
         if j == 0:
-            sns.heatmap(np.log10(q_rate_grid[2]), ax = ax[i,j], cbar = False)
+            ax[i,j].imshow(np.log10(q_rate_grid[2]), extent = extent, origin = 'lower')
+            #sns.heatmap(np.log10(q_rate_grid[2]), ax = ax[i,j], cbar = False)
         else:
-            sns.heatmap(np.log10(q_rate_grid[2]), ax = ax[i,j])
-        ax[i,j].set_xticks(ind_ticks)
-        ax[i,j].set_xticklabels(np.log10(q_rate_grid[1][ind_ticks]).round(1))
-        ax[i,j].invert_yaxis()
-        ax[i,j].set_yticks(ind_ticks)
-        ax[i,j].set_yticklabels(q_rate_grid[0][ind_ticks].round(2), rotation = 45)
+            pos = ax[i,j].imshow(np.log10(q_rate_grid[2]), extent = extent, origin = 'lower')
+            fig.colorbar(pos, ax = ax[i,j])
+            #sns.heatmap(np.log10(q_rate_grid[2]), ax = ax[i,j])
+        #ax[i,j].set_xticks(ind_ticks)
+        #ax[i,j].set_xticklabels(np.log10(q_rate_grid[1][ind_ticks]).round(1))
+        #ax[i,j].invert_yaxis()
+        #ax[i,j].set_yticks(ind_ticks)
+        #ax[i,j].set_yticklabels(q_rate_grid[0][ind_ticks].round(2), rotation = 45)
+        ax[i,j].plot(np.log10(q_rate_grid[1][ind_ticks]), cq_kin_lim)
         ax[i,j].grid(True)
         if i == 2:
             ax[i,j].set_xlabel('Log10(Rq)')
@@ -288,7 +294,7 @@ for i in range(3):
             ax[i,j].set_ylabel('Cq')
         else:
             ax[i,j].set_ylabel('')
-        ax[i,j].text(0.4, 4, 'r1 = {:.5f}'.format(r1))
+        ax[i,j].text(-4.5, .2, 'r1 = {:.5f}'.format(r1))
 
 plt.show()
 #}}}
