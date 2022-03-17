@@ -257,6 +257,16 @@ sampler = InitialSampler(m_dm, me_heavy, material, response, vdf, n_cq = resolut
 # rate grid in q and cq for fix r1 (GRAPH)
 #{{{
 ind_ticks = np.linspace(0, (resolution - 1), 10).astype('int')
+
+wvals = np.logspace(0,4.5,10) # Multiples of Delta
+cmap = matplotlib.cm.Purples
+norm = matplotlib.colors.Normalize(vmin=np.min(wvals), vmax=np.max(wvals))
+
+custom_lines = []
+for i in wvals:
+    custom_lines.append( Line2D([0],[0], marker = '', linewidth = 3, linestyle = '--', color = cmap(norm(i)), 
+            label = 'w = {:.2f}'.format(i)) )
+
 fig, ax = plt.subplots(3,2, sharex = True, sharey = True, gridspec_kw = {'hspace':0, 'wspace':0.},
                        figsize = (14,10))
 
@@ -271,21 +281,26 @@ for i in range(3):
         extent = [ np.log10(np.min(q_rate_grid[1])), np.log10(np.max(q_rate_grid[1])),
                    np.min(q_rate_grid[0]), np.max(q_rate_grid[0]) ]
         
-        cq_kin_lim = (1/(2*r1)) * q_rate_grid[1][ind_ticks] # Kinematic limit for omega > 0
         if j == 0:
             ax[i,j].imshow(np.log10(q_rate_grid[2]), extent = extent, origin = 'lower')
-            #sns.heatmap(np.log10(q_rate_grid[2]), ax = ax[i,j], cbar = False)
         else:
             pos = ax[i,j].imshow(np.log10(q_rate_grid[2]), extent = extent, origin = 'lower')
             fig.colorbar(pos, ax = ax[i,j])
-            #sns.heatmap(np.log10(q_rate_grid[2]), ax = ax[i,j])
-        #ax[i,j].set_xticks(ind_ticks)
-        #ax[i,j].set_xticklabels(np.log10(q_rate_grid[1][ind_ticks]).round(1))
-        #ax[i,j].invert_yaxis()
-        #ax[i,j].set_yticks(ind_ticks)
-        #ax[i,j].set_yticklabels(q_rate_grid[0][ind_ticks].round(2), rotation = 45)
-        ax[i,j].plot(np.log10(q_rate_grid[1][ind_ticks]), cq_kin_lim)
+        rq = q_rate_grid[1][ind_ticks]
+        for w in wvals:
+            cq_kin_lim = (rq**2) + (w * material.Delta * 2*sampler.m1)
+            cq_kin_lim = cq_kin_lim / (2*r1*rq) # Kinematic limit for omega > 0
+            ax[i,j].plot(np.log10(q_rate_grid[1][ind_ticks]), cq_kin_lim, linestyle = '--', color = cmap(norm(w)), linewidth = 3)
+        w = 2 * material.Delta
+        cq_kin_lim = (rq**2) + (w*2*sampler.m1)
+        cq_kin_lim = cq_kin_lim / (2*r1*rq) # Kinematic limit for omega > 0
+        ax[i,j].plot(np.log10(q_rate_grid[1][ind_ticks]), cq_kin_lim, linestyle = '--', color = 'magenta', linewidth = 3)
+        w = 0
+        cq_kin_lim = (rq**2) + (w*2*sampler.m1)
+        cq_kin_lim = cq_kin_lim / (2*r1*rq) # Kinematic limit for omega > 0
+        ax[i,j].plot(np.log10(q_rate_grid[1][ind_ticks]), cq_kin_lim, linestyle = '--', color = 'magenta', linewidth = 3)
         ax[i,j].grid(True)
+        ax[i,j].set_ylim(0,1)
         if i == 2:
             ax[i,j].set_xlabel('Log10(Rq)')
         else:
@@ -296,6 +311,7 @@ for i in range(3):
             ax[i,j].set_ylabel('')
         ax[i,j].text(-4.5, .2, 'r1 = {:.5f}'.format(r1))
 
+ax[0,0].legend(handles = custom_lines, ncol = 6, bbox_to_anchor = (0.45,1.3))
 plt.show()
 #}}}
 
