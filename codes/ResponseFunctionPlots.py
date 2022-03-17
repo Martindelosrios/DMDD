@@ -6,6 +6,8 @@ import matplotlib
 from matplotlib.cm import get_cmap
 from matplotlib.lines import Line2D
 import seaborn as sns
+import scipy.stats as st 
+from sklearn.model_selection import ParameterGrid
 
 from scdc.materials import ALUMINUM, NIOBIUM, SILICON
 from scdc.initial.response import HybridResponseFunction
@@ -257,16 +259,16 @@ sampler = InitialSampler(m_dm, me_heavy, material, response, vdf, n_cq = resolut
 # rate grid in q and cq for fix r1 (GRAPH)
 #{{{
 ind_ticks = np.linspace(0, (resolution - 1), 10).astype('int')
-
-wvals = np.logspace(0,4.5,10) # Multiples of Delta
+wvals = np.logspace(0,6,10) # Multiples of Delta
 cmap = matplotlib.cm.Purples
-norm = matplotlib.colors.Normalize(vmin=np.min(wvals), vmax=np.max(wvals))
+norm = matplotlib.colors.LogNorm(vmin=np.min(wvals), vmax=np.max(wvals))
 
 custom_lines = []
 for i in wvals:
     custom_lines.append( Line2D([0],[0], marker = '', linewidth = 3, linestyle = '--', color = cmap(norm(i)), 
-            label = 'w = {:.2f}'.format(i)) )
+            label = 'w = {:.2e}'.format(i)) )
 
+plt.rc('font', size=13)  
 fig, ax = plt.subplots(3,2, sharex = True, sharey = True, gridspec_kw = {'hspace':0, 'wspace':0.},
                        figsize = (14,10))
 
@@ -278,40 +280,107 @@ for i in range(3):
         r1 = r1_vals[c]
         c = c+1
         q_rate_grid = sampler.q_rate_grid(r1)
-        extent = [ np.log10(np.min(q_rate_grid[1])), np.log10(np.max(q_rate_grid[1])),
+        extent = [ np.min(q_rate_grid[1]), np.max(q_rate_grid[1]),
                    np.min(q_rate_grid[0]), np.max(q_rate_grid[0]) ]
         
         if j == 0:
-            ax[i,j].imshow(np.log10(q_rate_grid[2]), extent = extent, origin = 'lower')
+            ax[i,j].imshow(np.log10(q_rate_grid[2]), extent = extent, origin = 'lower', aspect = 'auto')
         else:
-            pos = ax[i,j].imshow(np.log10(q_rate_grid[2]), extent = extent, origin = 'lower')
+            pos = ax[i,j].imshow(np.log10(q_rate_grid[2]), extent = extent, origin = 'lower', aspect = 'auto')
             fig.colorbar(pos, ax = ax[i,j])
         rq = q_rate_grid[1][ind_ticks]
         for w in wvals:
             cq_kin_lim = (rq**2) + (w * material.Delta * 2*sampler.m1)
             cq_kin_lim = cq_kin_lim / (2*r1*rq) # Kinematic limit for omega > 0
-            ax[i,j].plot(np.log10(q_rate_grid[1][ind_ticks]), cq_kin_lim, linestyle = '--', color = cmap(norm(w)), linewidth = 3)
+            ax[i,j].plot(q_rate_grid[1][ind_ticks], cq_kin_lim, linestyle = '--', color = cmap(norm(w)), linewidth = 3)
+
         w = 2 * material.Delta
         cq_kin_lim = (rq**2) + (w*2*sampler.m1)
         cq_kin_lim = cq_kin_lim / (2*r1*rq) # Kinematic limit for omega > 0
-        ax[i,j].plot(np.log10(q_rate_grid[1][ind_ticks]), cq_kin_lim, linestyle = '--', color = 'magenta', linewidth = 3)
+        ax[i,j].plot(q_rate_grid[1][ind_ticks], cq_kin_lim, linestyle = '--', color = 'magenta', linewidth = 3)
+        
         w = 0
         cq_kin_lim = (rq**2) + (w*2*sampler.m1)
         cq_kin_lim = cq_kin_lim / (2*r1*rq) # Kinematic limit for omega > 0
-        ax[i,j].plot(np.log10(q_rate_grid[1][ind_ticks]), cq_kin_lim, linestyle = '--', color = 'magenta', linewidth = 3)
+        ax[i,j].plot(q_rate_grid[1][ind_ticks], cq_kin_lim, linestyle = '--', color = 'red', linewidth = 3)
+
         ax[i,j].grid(True)
         ax[i,j].set_ylim(0,1)
         if i == 2:
-            ax[i,j].set_xlabel('Log10(Rq)')
+            ax[i,j].set_xlabel('$R_{q}$')
         else:
             ax[i,j].set_xlabel('')
         if j == 0:
-            ax[i,j].set_ylabel('Cq')
+            ax[i,j].set_ylabel('$C_{q}$')
         else:
             ax[i,j].set_ylabel('')
-        ax[i,j].text(-4.5, .2, 'r1 = {:.5f}'.format(r1))
+        ax[i,j].text(1e-3, .2, 'r1 = {:.5f}'.format(r1))
+        
+        # Equations labels
+        ax[i,j].text(0.0007, 0.37, '$w=0 ; cq = 2Rq/r1$', c = 'red')
+        ax[0,0].text(1e-3, 0.1, '$r1 = 2 \sqrt{\Delta m_{\chi}}$')
 
-ax[0,0].legend(handles = custom_lines, ncol = 6, bbox_to_anchor = (0.45,1.3))
+ax[0,0].legend(handles = custom_lines, ncol = 5, bbox_to_anchor = (0.,1.3), loc = 'upper left')
+plt.show()
+#}}}
+
+# rate grid in q and w for fix r1 (GRAPH)
+#{{{
+ind_ticks = np.linspace(0, (resolution - 1), 10).astype('int')
+npoints = 20
+
+cqvals = np.linspace(0,1,10) 
+cmap = matplotlib.cm.Purples
+norm = matplotlib.colors.Normalize(vmin=np.min(cqvals), vmax=np.max(cqvals))
+
+custom_lines = []
+for i in cqvals:
+    custom_lines.append( Line2D([0],[0], marker = '', linewidth = 3, linestyle = '--', color = cmap(norm(i)), 
+            label = 'cq = {:.2e}'.format(i)) )
+
+plt.rc('font', size=13)  
+fig, ax = plt.subplots(3,2, sharex=True, sharey=True, gridspec_kw = {'hspace':0, 'wspace':0.},
+                       figsize = (14,10))
+
+r1_vals = np.linspace(np.min(sampler.r1_vals), np.max(sampler.r1_vals), 6)
+
+c  = 0 
+for i in range(3):
+    for j in range(2):
+        r1 = r1_vals[c]
+        c = c+1
+        q_rate_grid = sampler.q_rate_grid(r1)
+        
+        rq_vals = np.linspace( np.min(q_rate_grid[1]), np.max(q_rate_grid[1]), npoints)
+        w_vals  = np.linspace(0, ((r1**2)/ (2*sampler.m1)), npoints) #sampler._omega(r1,rq_vals, cq_vals)
+
+        rates = np.zeros((npoints, npoints))
+        for ki in range(npoints):
+            w = w_vals[ki]
+            for kj in range(npoints):
+                rq  = rq_vals[kj]
+                cq = ( (rq**2) + 2 * w * sampler.m1 ) / (2 * r1 * rq)
+                if np.abs(cq) <= 1: rates[ki,kj] =  sampler.q_rate(r1, rq, cq)
+
+        if j == 0:
+            ax[i,j].imshow(np.log10(rates), origin = 'lower', extent = [np.min(rq_vals), np.max(rq_vals), 0, np.max(w_vals)], aspect = 'auto')
+            ax[i,j].set_ylabel('$\omega$')
+        else:
+            pos = ax[i,j].imshow(np.log10(rates), origin = 'lower', extent = [np.min(rq_vals), np.max(rq_vals), 0, np.max(w_vals)], aspect = 'auto')
+            fig.colorbar(pos, ax = ax[i,j])
+
+        wlim = rq_vals * (r1 - (rq_vals/2)) / sampler.m1
+        ax[i,j].plot(rq_vals, wlim)
+        for cq in cqvals:
+            wlim = (2 * r1 * rq_vals * cq - (rq_vals**2)) / (2*sampler.m1)
+            ax[i,j].plot(rq_vals, wlim, c = cmap(norm(cq)), linestyle = '--', linewidth = 3)
+        ax[i,j].text(1e-4, 17, 'r1 = {:.5f}'.format(r1))
+        ax[i,j].grid(True)
+        ax[i,j].set_ylim(0,np.max(wlim))
+        ax[2,0].set_xlabel('rq')
+        ax[2,1].set_xlabel('rq')
+
+        ax[i,j].text(0.0008, 15, '$\omega = r_{q}(r_{1} - r_{q}/2)/2$', c = 'blue')
 plt.show()
 #}}}
 
