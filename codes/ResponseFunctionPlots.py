@@ -287,7 +287,8 @@ for i in range(3):
             ax[i,j].imshow(np.log10(q_rate_grid[2]), extent = extent, origin = 'lower', aspect = 'auto')
         else:
             pos = ax[i,j].imshow(np.log10(q_rate_grid[2]), extent = extent, origin = 'lower', aspect = 'auto')
-            fig.colorbar(pos, ax = ax[i,j])
+            cbar = fig.colorbar(pos, ax = ax[i,j])
+            cbar.set_label('Log10(Rate)')
         rq = q_rate_grid[1][ind_ticks]
         for w in wvals:
             cq_kin_lim = (rq**2) + (w * material.Delta * 2*sampler.m1)
@@ -336,7 +337,7 @@ norm = matplotlib.colors.Normalize(vmin=np.min(cqvals), vmax=np.max(cqvals))
 custom_lines = []
 for i in cqvals:
     custom_lines.append( Line2D([0],[0], marker = '', linewidth = 3, linestyle = '--', color = cmap(norm(i)), 
-            label = 'cq = {:.2e}'.format(i)) )
+            label = 'cq = {:.2f}'.format(i)) )
 
 plt.rc('font', size=13)  
 fig, ax = plt.subplots(3,2, sharex=True, sharey=True, gridspec_kw = {'hspace':0, 'wspace':0.},
@@ -367,7 +368,8 @@ for i in range(3):
             ax[i,j].set_ylabel('$\omega$')
         else:
             pos = ax[i,j].imshow(np.log10(rates), origin = 'lower', extent = [np.min(rq_vals), np.max(rq_vals), 0, np.max(w_vals)], aspect = 'auto')
-            fig.colorbar(pos, ax = ax[i,j])
+            cbar = fig.colorbar(pos, ax = ax[i,j])
+            cbar.set_label('Log10(Rate)')
 
         wlim = rq_vals * (r1 - (rq_vals/2)) / sampler.m1
         ax[i,j].plot(rq_vals, wlim)
@@ -381,6 +383,7 @@ for i in range(3):
         ax[2,1].set_xlabel('rq')
 
         ax[i,j].text(0.0008, 15, '$\omega = r_{q}(r_{1} - r_{q}/2)/2$', c = 'blue')
+ax[0,0].legend(handles = custom_lines, ncol = 5, bbox_to_anchor = (0.,1.3), loc = 'upper left')
 plt.show()
 #}}}
 
