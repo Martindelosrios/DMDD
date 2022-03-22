@@ -19,7 +19,7 @@ KMS = 3.33564e-6  # km/s in natural units
 
 #}}}
 
-material = ALUMINUM
+material = SILICON
 response = HybridResponseFunction(material, 1) # The 1 is the coherence sign. Can be +1 or -1
 
 
@@ -61,7 +61,7 @@ axs[0,1].yaxis.tick_right()
 axs[0,1].yaxis.set_label_position("right")
 axs[0,1].set_ylabel('Response Function')
 axs[0,1].set_yscale('log')
-axs[0,1].text(15, 1e-9, 'r1 = {}; r2 = {}'.format(r1, r2))
+axs[0,1].text(0.2, 0.1, 'r1 = {}; r2 = {}'.format(r1, r2), transform = axs[0,1].transAxes)
 
 r1 = 1
 r2 = 1
@@ -74,7 +74,7 @@ axs[1,1].yaxis.tick_right()
 axs[1,1].yaxis.set_label_position("right")
 axs[1,1].set_ylabel('Response Function')
 axs[1,1].set_yscale('log')
-axs[1,1].text(15, 1e4, 'r1 = {}; r2 = {}'.format(r1, r2))
+axs[1,1].text(0.2, 0.1, 'r1 = {}; r2 = {}'.format(r1, r2), transform = axs[1,1].transAxes)
 
 r1 = 0.1
 r2 = 0.1
@@ -87,7 +87,7 @@ axs[2,1].yaxis.tick_right()
 axs[2,1].yaxis.set_label_position("right")
 axs[2,1].set_ylabel('Response Function')
 axs[2,1].set_yscale('log')
-axs[2,1].text(15, 1e-6, 'r1 = {}; r2 = {}'.format(r1, r2))
+axs[2,1].text(0.1, 0.1, 'r1 = {}; r2 = {}'.format(r1, r2), transform = axs[2,1].transAxes)
 
 r1 = 1e-8
 r2 = 1e-8
@@ -100,7 +100,7 @@ axs[3,1].yaxis.tick_right()
 axs[3,1].yaxis.set_label_position("right")
 axs[3,1].set_ylabel('Response Function')
 axs[3,1].set_yscale('log')
-axs[3,1].text(15, 1e-7, 'r1 = {}; r2 = {}'.format(r1, r2))
+axs[3,1].text(0.1, 0.1, 'r1 = {}; r2 = {}'.format(r1, r2), transform = axs[3,1].transAxes)
 axs[3,1].set_xlabel('Deposited Energy')
 
 r1 = 1
@@ -112,7 +112,7 @@ for i, vali in enumerate(q):
     axs[1,0].plot(w, np.asarray(res), label = 'q = {:.2e}'.format(vali) , c = cmap(norm(vali)) )
 axs[1,0].set_ylabel('Response Function')
 axs[1,0].set_yscale('log')
-axs[1,0].text(15, 1e4, 'r1 = {}; r2 = {}'.format(r1, r2))
+axs[1,0].text(0.1, 0.1, 'r1 = {}; r2 = {}'.format(r1, r2), transform = axs[1,0].transAxes)
 
 r1 = 1
 r2 = 0.1
@@ -123,7 +123,7 @@ for i, vali in enumerate(q):
     axs[2,0].plot(w, np.asarray(res), label = 'q = {:.2e}'.format(vali) , c = cmap(norm(vali)) )
 axs[2,0].set_ylabel('Response Function')
 axs[2,0].set_yscale('log')
-axs[2,0].text(15, 1e4, 'r1 = {}; r2 = {}'.format(r1, r2))
+axs[2,0].text(0.1, 0.1, 'r1 = {}; r2 = {}'.format(r1, r2), transform = axs[2,0].transAxes)
 
 r1 = 1
 r2 = 1e-8
@@ -135,7 +135,7 @@ for i, vali in enumerate(q):
 axs[3,0].set_ylabel('Response Function')
 axs[3,0].set_xlabel('Deposited Energy')
 axs[3,0].set_yscale('log')
-axs[3,0].text(15, 1e4, 'r1 = {}; r2 = {}'.format(r1, r2))
+axs[3,0].text(0.1, 0.1, 'r1 = {}; r2 = {}'.format(r1, r2), transform = axs[3,0].transAxes)
 
 plt.show()
 
@@ -249,7 +249,7 @@ vdf = StandardHaloDistribution(
 )
 
 me_heavy = FiducialMatrixElement(mediator_mass = 10)
-m_dm = 1e3/material.m # Dark matter mass in material units
+m_dm = 1e6/material.m # Dark matter mass in material units
 
 # Let's compute a sampling
 resolution = 20
@@ -315,12 +315,12 @@ for i in range(3):
             ax[i,j].set_ylabel('$C_{q}$')
         else:
             ax[i,j].set_ylabel('')
-        ax[i,j].text(1e-3, .2, 'r1 = {:.5f}'.format(r1))
+        ax[i,j].text(0.7, .1, 'r1 = {:.5f}'.format(r1), transform = ax[i,j].transAxes)
         
         # Equations labels
-        ax[i,j].text(0.0007, 0.37, '$w=0 ; cq = 2Rq/r1$', c = 'red')
-        ax[0,0].text(1e-3, 0.1, '$r1 = 2 \sqrt{\Delta m_{\chi}}$')
+        ax[i,j].text(0.2, 0.1, '$w=0 ; cq = 2Rq/r1$', c = 'red', transform = ax[i,j].transAxes)
 
+ax[0,0].text(0.7, 0.2, '$r1 = 2 \sqrt{\Delta m_{\chi}}$', transform = ax[0,0].transAxes)
 ax[0,0].legend(handles = custom_lines, ncol = 5, bbox_to_anchor = (0.,1.3), loc = 'upper left')
 plt.show()
 #}}}
@@ -376,13 +376,13 @@ for i in range(3):
         for cq in cqvals:
             wlim = (2 * r1 * rq_vals * cq - (rq_vals**2)) / (2*sampler.m1)
             ax[i,j].plot(rq_vals, wlim, c = cmap(norm(cq)), linestyle = '--', linewidth = 3)
-        ax[i,j].text(1e-4, 17, 'r1 = {:.5f}'.format(r1))
+        ax[i,j].text(0.8, 0.9, 'r1 = {:.3f}'.format(r1), transform = ax[i,j].transAxes)
         ax[i,j].grid(True)
         ax[i,j].set_ylim(0,np.max(wlim))
-        ax[2,0].set_xlabel('rq')
-        ax[2,1].set_xlabel('rq')
+        ax[i,j].text(0.05, 0.9, '$\omega = r_{q}(r_{1} - r_{q}/2)/2$', c = 'blue', transform = ax[i,j].transAxes)
 
-        ax[i,j].text(0.0008, 15, '$\omega = r_{q}(r_{1} - r_{q}/2)/2$', c = 'blue')
+ax[2,0].set_xlabel('rq')
+ax[2,1].set_xlabel('rq')
 ax[0,0].legend(handles = custom_lines, ncol = 5, bbox_to_anchor = (0.,1.3), loc = 'upper left')
 plt.show()
 #}}}
@@ -391,11 +391,11 @@ plt.show()
 #{{{
 r1_vals = np.linspace(np.min(sampler.r1_vals), np.max(sampler.r1_vals), 6)
 
-r1 = r1_vals[3] # We will have the same r1 for all the panels
+r1 = r1_vals[5] # We will have the same r1 for all the panels
 q_rate_grid = sampler.q_rate_grid(r1)
 
 rq_vals = np.linspace(np.min(q_rate_grid[1]), np.max(q_rate_grid[1]), 6)
-cq_vals = np.linspace(np.min(q_rate_grid[0]), np.max(q_rate_grid[0]), 16)
+cq_vals = np.linspace(np.min(q_rate_grid[0]), np.max(q_rate_grid[0]), 12)
 
 cmap = matplotlib.cm.viridis
 norm = matplotlib.colors.Normalize(vmin=np.min(cq_vals), vmax=np.max(cq_vals))
@@ -455,7 +455,7 @@ ax[2,1].set_xlabel('cq3')
 ax[0,0].set_ylabel('Rate')
 ax[1,0].set_ylabel('Rate')
 ax[2,0].set_ylabel('Rate')
-ax[0,0].legend(handles = custom_lines, ncol = 6, bbox_to_anchor = (2,1.4))
+ax[0,0].legend(handles = custom_lines, ncol = 6, bbox_to_anchor = (0,1.5), loc = 'upper left')
 ax[0,0].text(0.05, 1.1, 'r1 = {:.2e}'.format(r1), transform = ax[0,0].transAxes)
 plt.show()
 #}}}
@@ -464,11 +464,11 @@ plt.show()
 #{{{
 r1_vals = np.linspace(np.min(sampler.r1_vals), np.max(sampler.r1_vals), 6)
 
-r1 = r1_vals[3] # We will have the same r1 for all the panels
+r1 = r1_vals[5] # We will have the same r1 for all the panels
 q_rate_grid = sampler.q_rate_grid(r1)
 
 rq_vals = np.linspace(np.min(q_rate_grid[1]), np.max(q_rate_grid[1]), 6)
-cq_vals = np.linspace(np.min(q_rate_grid[0]), np.max(q_rate_grid[0]), 16)
+cq_vals = np.linspace(np.min(q_rate_grid[0]), np.max(q_rate_grid[0]), 12)
 
 cmap = matplotlib.cm.viridis
 norm = matplotlib.colors.Normalize(vmin=np.min(cq_vals), vmax=np.max(cq_vals))
@@ -530,8 +530,8 @@ ax[2,1].set_xlabel('cq3')
 ax[0,0].set_ylabel('Rate')
 ax[1,0].set_ylabel('Rate')
 ax[2,0].set_ylabel('Rate')
-ax[0,0].legend(handles = custom_lines, ncol = 7, bbox_to_anchor = (2,1.5))
-ax[0,0].text(0.05, 1.05, 'r1 = {:.2e}'.format(r1), transform = ax[0,0].transAxes)
+ax[0,0].legend(handles = custom_lines, ncol = 6, bbox_to_anchor = (0,1.5), loc = 'upper left')
+ax[0,0].text(0.04, 1.05, 'r1 = {:.2e}'.format(r1), transform = ax[0,0].transAxes)
 plt.show()
 #}}}
 
