@@ -250,6 +250,7 @@ vdf = StandardHaloDistribution(
 
 me_heavy = FiducialMatrixElement(mediator_mass = 10)
 m_dm = 1e6/material.m # Dark matter mass in material units
+m2 = m_dm + (1e5)/material.m # Only used in inelastic scattering 
 
 # Let's compute a sampling
 resolution = 20
@@ -384,6 +385,70 @@ for i in range(3):
 ax[2,0].set_xlabel('rq')
 ax[2,1].set_xlabel('rq')
 ax[0,0].legend(handles = custom_lines, ncol = 5, bbox_to_anchor = (0.,1.3), loc = 'upper left')
+plt.show()
+#}}}
+
+# rate grid in q and w for fix r1 varying m2 (GRAPH)
+#{{{
+ind_ticks = np.linspace(0, (resolution - 1), 10).astype('int')
+npoints = 20
+
+m2_vals = m_dm + [0, 1e4, 1e5, 5e5, 1e6, 1e7] / material.m
+
+cqvals = np.linspace(0,1,10) 
+cmap = matplotlib.cm.Purples
+norm = matplotlib.colors.Normalize(vmin=np.min(cqvals), vmax=np.max(cqvals))
+
+custom_lines = []
+for i in cqvals:
+    custom_lines.append( Line2D([0],[0], marker = '', linewidth = 3, linestyle = '--', color = cmap(norm(i)), 
+            label = 'cq = {:.2f}'.format(i)) )
+
+plt.rc('font', size=13)  
+fig, ax = plt.subplots(3,2, sharex=True, sharey=True, gridspec_kw = {'hspace':0, 'wspace':0.},
+                       figsize = (14,10))
+
+r1_vals = np.linspace(np.min(sampler.r1_vals), np.max(sampler.r1_vals), 6)
+
+c  = 0 
+r1 = r1_vals[3]
+q_rate_grid = sampler.q_rate_grid(r1)
+rq_vals = np.linspace( np.min(q_rate_grid[1]), np.max(q_rate_grid[1]), npoints)
+w_vals  = np.linspace(0, ((r1**2)/ (2*sampler.m1)), npoints) #sampler._omega(r1,rq_vals, cq_vals)
+for i in range(3):
+    for j in range(2):
+        rates = np.zeros((npoints, npoints))
+        m2 = m2_vals[c]
+        c = c+1
+        for ki in range(npoints):
+            w = w_vals[ki]
+            for kj in range(npoints):
+                rq  = rq_vals[kj]
+                cq = ( (rq**2) + 2 * w * sampler.m1 ) / (2 * r1 * rq)
+                if np.abs(cq) <= 1: rates[ki,kj] =  sampler.q_rate(r1, rq, cq)
+
+        if j == 0:
+            ax[i,j].imshow(np.log10(rates), origin = 'lower', extent = [np.min(rq_vals), np.max(rq_vals), 0, np.max(w_vals)], aspect = 'auto')
+            ax[i,j].set_ylabel('$\omega$')
+        else:
+            pos = ax[i,j].imshow(np.log10(rates), origin = 'lower', extent = [np.min(rq_vals), np.max(rq_vals), 0, np.max(w_vals)], aspect = 'auto')
+            cbar = fig.colorbar(pos, ax = ax[i,j])
+            cbar.set_label('Log10(Rate)')
+
+        wlim = rq_vals * (r1 - (rq_vals/2)) / sampler.m1
+        ax[i,j].plot(rq_vals, wlim)
+        for cq in cqvals:
+            wlim_ine = (r1 * rq_vals * cq / m2) - ((r1**2) * (m2-sampler.m1) / (sampler.m1 * m2)) - ((rq_vals**2)/(2*m2))
+            ax[i,j].plot(rq_vals, wlim_ine, c = cmap(norm(cq)), linestyle = '-.', linewidth = 3)
+        ax[i,j].text(0.8, 0.9, 'm1/m2 = {:.3f}'.format(sampler.m1/m2), transform = ax[i,j].transAxes)
+        ax[i,j].grid(True)
+        ax[i,j].set_ylim(0,np.max(wlim))
+        ax[i,j].text(0.05, 0.9, '$\omega = r_{q}(r_{1} - r_{q}/2)/2$', c = 'blue', transform = ax[i,j].transAxes)
+
+ax[2,0].set_xlabel('rq')
+ax[2,1].set_xlabel('rq')
+ax[0,0].legend(handles = custom_lines, ncol = 5, bbox_to_anchor = (0.,1.3), loc = 'upper left')
+ax[0,0].text(0.0, 0.09, '$r1 = {:.3f}'.format(r1), transform = ax[0,0].transAxes)
 plt.show()
 #}}}
 
